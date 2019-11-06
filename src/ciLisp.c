@@ -61,7 +61,21 @@ AST_NODE *createNumberNode(double value, NUM_TYPE type)
     if ((node = calloc(nodeSize, 1)) == NULL)
         yyerror("Memory allocation failed!");
 
-    // TODO set the AST_NODE's type, assign values to contained NUM_AST_NODE
+    // TODO set the AST_NODE's type, assign values to contained NUM_AST_NODE - Done
+
+    node->type = NUM_NODE_TYPE;
+    node->data.number.type = type;
+
+    if(type == INT_TYPE)
+    {
+        node->data.number.value.ival = value;
+    }
+    else
+    {
+        node->data.number.value.dval = value;
+    }
+
+
 
     return node;
 }
@@ -83,12 +97,19 @@ AST_NODE *createFunctionNode(char *funcName, AST_NODE *op1, AST_NODE *op2)
     if ((node = calloc(nodeSize, 1)) == NULL)
         yyerror("Memory allocation failed!");
 
-    // TODO set the AST_NODE's type, populate contained FUNC_AST_NODE
+    // TODO set the AST_NODE's type, populate contained FUNC_AST_NODE - Done
     // NOTE: you do not need to populate the "ident" field unless the function is type CUSTOM_OPER.
     // When you do have a CUSTOM_OPER, you do NOT need to allocate and strcpy here.
     // The funcName will be a string identifier for which space should be allocated in the tokenizer.
     // For CUSTOM_OPER functions, you should simply assign the "ident" pointer to the passed in funcName.
     // For functions other than CUSTOM_OPER, you should free the funcName after you're assigned the OPER_TYPE.
+
+    node->type = FUNC_NODE_TYPE;
+    node->data.function.op1 = op1;
+    node->data.function.op2 = op2;
+    node->data.function.oper = resolveFunc(funcName);
+
+    free(funcName);
 
     return node;
 }
@@ -129,11 +150,16 @@ RET_VAL eval(AST_NODE *node)
 
     RET_VAL result = {INT_TYPE, NAN}; // see NUM_AST_NODE, because RET_VAL is just an alternative name for it.
 
-    // TODO complete the switch.
+    // TODO complete the switch. - Done
     // Make calls to other eval functions based on node type.
     // Use the results of those calls to populate result.
     switch (node->type)
     {
+        case FUNC_NODE_TYPE:
+            result = evalFuncNode(&node->data.function); // return by value and not by reference
+            break;
+        case NUM_NODE_TYPE:
+            result = evalNumNode(&node->data.number);
         default:
             yyerror("Invalid AST_NODE_TYPE, probably invalid writes somewhere!");
     }
@@ -143,15 +169,25 @@ RET_VAL eval(AST_NODE *node)
 
 // returns a pointer to the NUM_AST_NODE (aka RET_VAL) referenced by node.
 // DOES NOT allocate space for a new RET_VAL.
-RET_VAL evalNumNode(NUM_AST_NODE *numNode)
+RET_VAL evalNumNode(NUM_AST_NODE *numNode) // If different types of data. Upgrade to more complex types.
 {
     if (!numNode)
         return (RET_VAL){INT_TYPE, NAN};
 
     RET_VAL result = {INT_TYPE, NAN};
 
-    // TODO populate result with the values stored in the node.
+    // TODO populate result with the values stored in the node. - Done
     // SEE: AST_NODE, AST_NODE_TYPE, NUM_AST_NODE
+
+    if(numNode->type == INT_TYPE)
+    {
+        result.value.ival = numNode->value.ival;
+    }
+    else
+    {
+        result.type = DOUBLE_TYPE;
+        result.value.dval = numNode->value.dval;
+    }
 
 
     return result;
@@ -167,6 +203,9 @@ RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode)
 
     // TODO populate result with the result of running the function on its operands.
     // SEE: AST_NODE, AST_NODE_TYPE, FUNC_AST_NODE
+
+
+
 
 
     return result;
