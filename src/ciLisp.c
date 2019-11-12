@@ -313,16 +313,52 @@ RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode)
             }
             break;
         case LOG_OPER:
-
+            switch(funcNode->op1->type)
+            {
+                case INT_TYPE:
+                    result.value.ival = (int)log(funcNode->op1->data.number.value.ival);
+                    break;
+                case DOUBLE_TYPE:
+                    result.value.dval = log(funcNode->op1->data.number.value.dval);
+                    break;
+            }
             break;
         case POW_OPER:
-
+            switch (binaryOpHelper(funcNode, result))
+            {
+                case INT_TYPE:
+                    result.value.ival = pow(funcNode->op1->data.number.value.ival, funcNode->op2->data.number.value.ival);
+                    break;
+                case DOUBLE_TYPE:
+                    result.value.dval = pow(funcNode->op1->data.number.value.dval, funcNode->op2->data.number.value.dval);
+                    break;
+            }
             break;
         case MAX_OPER:
-
+            switch (binaryOpHelper(funcNode, result))
+            {
+                case INT_TYPE:
+                    result.value.ival = (funcNode->op1->data.number.value.ival > funcNode->op2->data.number.value.ival ?
+                                         funcNode->op1->data.number.value.ival : funcNode->op2->data.number.value.ival );
+                    break;
+                case DOUBLE_TYPE:
+                    result.value.dval = (funcNode->op1->data.number.value.dval > funcNode->op2->data.number.value.dval ?
+                                         funcNode->op1->data.number.value.dval : funcNode->op2->data.number.value.dval );
+                    break;
+            }
             break;
         case MIN_OPER:
-
+            switch (binaryOpHelper(funcNode, result))
+            {
+                case INT_TYPE:
+                    result.value.ival = (funcNode->op1->data.number.value.ival < funcNode->op2->data.number.value.ival ?
+                                         funcNode->op1->data.number.value.ival : funcNode->op2->data.number.value.ival );
+                    break;
+                case DOUBLE_TYPE:
+                    result.value.dval = (funcNode->op1->data.number.value.dval < funcNode->op2->data.number.value.dval ?
+                                         funcNode->op1->data.number.value.dval : funcNode->op2->data.number.value.dval );
+                    break;
+            }
             break;
         case EXP2_OPER:
 
