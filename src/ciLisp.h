@@ -116,6 +116,9 @@ RET_VAL eval(AST_NODE *node);
 RET_VAL evalNumNode(NUM_AST_NODE *numNode);
 RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode);
 NUM_TYPE binaryOpHelper(RET_VAL *op1, RET_VAL *op2);
+SYMBOL_TABLE_NODE *createSymbolTable(char *symbol, AST_NODE *value);
+SYMBOL_TABLE_NODE *linkSymbolTables(SYMBOL_TABLE_NODE *list, SYMBOL_TABLE_NODE *elem);
+SYMBOL_AST_NODE *createSymbolNode(char *symbol);
 
 void printRetVal(RET_VAL val);
 

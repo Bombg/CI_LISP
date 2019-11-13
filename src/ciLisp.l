@@ -38,12 +38,11 @@ symbol {letter}+
     return FUNC;
     }
 
-{symbol} {
-     yylval.sval = (char *)malloc(strlen(yytext)*sizeof(char)+1);
-     strcpy(yylval.sval, yytext);
-     fprintf(stderr, "lex: SYMBOL sval = %s\n", yylval.sval);
-     return SYMBOL;
-    }
+"let" {
+       fprintf(stderr, "lex:LET\n");
+       return LET;
+      }
+
 "(" {
     fprintf(stderr, "lex: LPAREN\n");
     return LPAREN;
@@ -53,15 +52,17 @@ symbol {letter}+
     fprintf(stderr, "lex: RPAREN\n");
     return RPAREN;
     }
-"let" {
-       fprintf(stderr, "lex:LET\n");
-       return LET;
-      }
 
 [\n] {
     fprintf(stderr, "lex: EOL\n");
     YY_FLUSH_BUFFER;
     return EOL;
+    }
+{symbol} {
+     yylval.sval = (char *)malloc(strlen(yytext)*sizeof(char)+1);
+     strcpy(yylval.sval, yytext);
+     fprintf(stderr, "lex: SYMBOL sval = %s\n", yylval.sval);
+     return SYMBOL;
     }
 
 [ |\t] ; /* skip whitespace */
@@ -77,7 +78,7 @@ symbol {letter}+
  */
 int main(void) {
 
-       freopen("/dev/null", "w", stderr); // except for this line that can be uncommented to throw away debug printouts
+       //freopen("/dev/null", "w", stderr); // except for this line that can be uncommented to throw away debug printouts
 
     char *s_expr_str = NULL;
     size_t s_expr_str_len = 0;

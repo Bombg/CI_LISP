@@ -495,3 +495,48 @@ void printRetVal(RET_VAL val){
     }
 
 }
+
+SYMBOL_TABLE_NODE *createSymbolTable(char *symbol, AST_NODE *value)
+{
+    SYMBOL_TABLE_NODE *symbNode;
+    size_t nodeSize;
+
+    nodeSize = sizeof(AST_NODE);
+    if ((symbNode = calloc(nodeSize, 1)) == NULL)
+    {
+        yyerror("Memory allocation failed!");
+    }
+
+    //symbNode->ident = (char*)malloc(sizeof(strlen(symbol)) * sizeof(char) +1);
+    strcpy(symbNode->ident, symbol);
+    symbNode->val = value;
+
+    printf("does this work?");
+
+
+    return symbNode;
+
+
+}
+
+SYMBOL_TABLE_NODE *linkSymbolTables(SYMBOL_TABLE_NODE *list, SYMBOL_TABLE_NODE *elem)
+{
+
+    SYMBOL_TABLE_NODE *symbNode;
+    size_t nodeSize;
+
+    nodeSize = sizeof(AST_NODE);
+    if ((symbNode = calloc(nodeSize, 1)) == NULL)
+    {
+        yyerror("Memory allocation failed!");
+    }
+
+    printf("does this work?");
+
+    list->next = elem;
+}
+
+SYMBOL_AST_NODE *createSymbolNode(char *symbol)
+{
+
+}
