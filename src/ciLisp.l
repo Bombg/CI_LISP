@@ -10,6 +10,8 @@ digit [0-9]
 int [+-]?{digit}+
 double [+-]?{digit}\.{digit}*
 func "neg"|"abs"|"exp"|"sqrt"|"add"|"sub"|"mult"|"div"|"remainder"|"log"|"pow"|"max"|"min"|"exp2"|"cbrt"|"hypot"
+letter [a-zA-Z]
+symbol {letter}+
 
 %%
 
@@ -36,6 +38,12 @@ func "neg"|"abs"|"exp"|"sqrt"|"add"|"sub"|"mult"|"div"|"remainder"|"log"|"pow"|"
     return FUNC;
     }
 
+{symbol} {
+     yylval.sval = (char *)malloc(strlen(yytext)*sizeof(char)+1);
+     strcpy(yylval.sval, yytext);
+     fprintf(stderr, "lex: SYMBOL sval = %s\n", yylval.sval);
+     return SYMBOL;
+    }
 "(" {
     fprintf(stderr, "lex: LPAREN\n");
     return LPAREN;
@@ -45,6 +53,10 @@ func "neg"|"abs"|"exp"|"sqrt"|"add"|"sub"|"mult"|"div"|"remainder"|"log"|"pow"|"
     fprintf(stderr, "lex: RPAREN\n");
     return RPAREN;
     }
+"let" {
+       fprintf(stderr, "lex:LET\n");
+       return LET;
+      }
 
 [\n] {
     fprintf(stderr, "lex: EOL\n");

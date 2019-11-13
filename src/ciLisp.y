@@ -8,9 +8,9 @@
     struct ast_node *astNode;
 };
 
-%token <sval> FUNC
+%token <sval> FUNC, SYMBOL
 %token <dval> INT, DOUBLE
-%token LPAREN RPAREN EOL QUIT
+%token LPAREN RPAREN EOL QUIT LET
 
 %type <astNode> s_expr f_expr number
 
@@ -44,12 +44,19 @@ s_expr:
         fprintf(stderr, "yacc: s_expr ::= number\n");
         $$ = $1;
     }
+    | SYMBOL {
+    	$$ = $1;
+    }
     | f_expr {
         $$ = $1;
     }
     | QUIT {
         fprintf(stderr, "yacc: s_expr ::= QUIT\n");
         exit(EXIT_SUCCESS);
+    }
+    | LPAREN let_section s_expr RPAREN {
+	fprintf(stderr, "yacc: s_expr ::= LPAREN let_section s_expr RPAREN\n");
+
     }
     | error {
         fprintf(stderr, "yacc: s_expr ::= error\n");
@@ -76,5 +83,27 @@ f_expr:
         fprintf(stderr, "yacc: s_expr ::= LPAREN FUNC expr expr RPAREN\n");
         $$ = createFunctionNode($2, $3, $4);
     };
+
+let_section:
+    LPAREN let_list RPAREN {
+    	fprintf(stderr, "yacc: let_section ::= LPAREN let_list RPAREN\n");
+
+    };
+
+let_list:
+     LET let_elem {
+     	fprintf(stderr, "yacc: let_list ::= LET let_elem\n");
+
+     }
+     | let_list let_elem {
+     fprintf(stderr, "yacc: let_list ::= let_list let_elem\n");
+
+     };
+let_elem:
+     LPAREN SYMBOL s_expr RPAREN {
+     fprintf(stderr, "yacc: let_elem ::= LPAREN SYMBOL s_expr RPAREN\n");
+
+     }
+
 %%
 
