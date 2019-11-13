@@ -101,7 +101,7 @@ void freeNode(AST_NODE *node);
 RET_VAL eval(AST_NODE *node);
 RET_VAL evalNumNode(NUM_AST_NODE *numNode);
 RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode);
-int binaryOpHelper(FUNC_AST_NODE *funcNode, RET_VAL result)
+NUM_TYPE binaryOpHelper(RET_VAL op1, RET_VAL op2);
 
 void printRetVal(RET_VAL val);
 

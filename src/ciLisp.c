@@ -1,6 +1,6 @@
 #include "ciLisp.h"
 
-void yyerror(char *s) {
+void yyerror(char *s){
     fprintf(stderr, "\nERROR: %s\n", s);
     // note stderr that normally defaults to stdout, but can be redirected: ./src 2> src.log
     // CLion will display stderr in a different color from stdin and stdout
@@ -104,6 +104,8 @@ AST_NODE *createFunctionNode(char *funcName, AST_NODE *op1, AST_NODE *op2)
     // For CUSTOM_OPER functions, you should simply assign the "ident" pointer to the passed in funcName.
     // For functions other than CUSTOM_OPER, you should free the funcName after you're assigned the OPER_TYPE.
 
+
+
     node->type = FUNC_NODE_TYPE;
     node->data.function.op1 = op1;
     node->data.function.op2 = op2;
@@ -204,116 +206,124 @@ RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode)
     // TODO populate result with the result of running the function on its operands.
     // SEE: AST_NODE, AST_NODE_TYPE, FUNC_AST_NODE
 
+    RET_VAL op1 = eval(funcNode->op1);
+    RET_VAL op2 = eval(funcNode->op2);
+
     switch(funcNode->oper)
     {
         case NEG_OPER:
-            switch (funcNode->op1->type)
+            switch (op1.type)
             {
                 case INT_TYPE:
                     result.type = INT_TYPE;
-                    result.value.ival = -1 * funcNode->op1->data.number.value.ival;
+                    result.value.ival = -1 * op1.value.ival;
                     break;
                 case DOUBLE_TYPE:
                     result.type = DOUBLE_TYPE;
-                    result.value.dval = -1 * funcNode->op1->data.number.value.dval;
+                    result.value.dval = -1 * op1.value.dval;
                     break;
             }
             break;
         case ABS_OPER:
-            switch (funcNode->op1->type)
+            switch (op1.type)
             {
                 case INT_TYPE:
                     result.type = INT_TYPE;
-                    result.value.ival = labs(funcNode->op1->data.number.value.ival);
+                    result.value.ival = labs(op1.value.ival);
                     break;
                 case DOUBLE_TYPE:
                     result.type = DOUBLE_TYPE;
-                    result.value.dval = fabs(funcNode->op1->data.number.value.dval);
+                    result.value.dval = fabs(op1.value.dval);
             }
             break;
         case EXP_OPER:
-            switch (funcNode->op1->type)
+            switch (op1.type)
             {
                 case INT_TYPE:
                     result.type = INT_TYPE;
-                    result.value.ival = exp(funcNode->op1->data.number.value.ival);
+                    result.value.ival = exp(op1.value.ival);
                     break;
                 case DOUBLE_TYPE:
                     result.type = DOUBLE_TYPE;
-                    result.value.dval = exp(funcNode->op1->data.number.value.dval);
+                    result.value.dval = exp(op1.value.dval);
                     break;
             }
             break;
         case SQRT_OPER:
-            switch (funcNode->op1->type)
+            switch (op1.type)
             {
                 case INT_TYPE:
                     result.type = INT_TYPE;
-                    result.value.ival = sqrt(funcNode->op1->data.number.value.ival);
+                    result.value.ival = sqrt(op1.value.ival);
                     break;
                 case DOUBLE_TYPE:
                     result.type = DOUBLE_TYPE;
-                    result.value.dval = sqrt(funcNode->op1->data.number.value.dval);
+                    result.value.dval = sqrt(op1.value.dval);
                     break;
             }
             break;
         case ADD_OPER:
-            switch (binaryOpHelper(funcNode, result))
+            switch (binaryOpHelper(op1, op2))
             {
                 case INT_TYPE:
-                    result.value.ival = funcNode->op1->data.number.value.ival + funcNode->op2->data.number.value.ival;
+                    result.value.ival = op1.value.ival + op2.value.ival;
                     break;
                 case DOUBLE_TYPE:
-                    result.value.dval = funcNode->op1->data.number.value.dval + funcNode->op2->data.number.value.dval;
+                    result.type = DOUBLE_TYPE;
+                    result.value.dval = op1.value.dval + op1.value.dval;
                     break;
             }
             break;
         case SUB_OPER:
-            switch (binaryOpHelper(funcNode, result))
+            switch (binaryOpHelper(op1, op2))
             {
                 case INT_TYPE:
-                    result.value.ival = funcNode->op1->data.number.value.ival - funcNode->op2->data.number.value.ival;
+                    result.value.ival = op1.value.ival - op2.value.ival;
                     break;
                 case DOUBLE_TYPE:
+                    result.type = DOUBLE_TYPE;
                     result.value.dval = funcNode->op1->data.number.value.dval - funcNode->op2->data.number.value.dval;
                     break;
             }
             break;
         case MULT_OPER:
-            switch (binaryOpHelper(funcNode, result))
+            switch (binaryOpHelper(op1, op2))
             {
                 case INT_TYPE:
                     result.value.ival = funcNode->op1->data.number.value.ival * funcNode->op2->data.number.value.ival;
                     break;
                 case DOUBLE_TYPE:
+                    result.type = DOUBLE_TYPE;
                     result.value.dval = funcNode->op1->data.number.value.dval * funcNode->op2->data.number.value.dval;
                     break;
             }
             break;
         case DIV_OPER:
-            switch (binaryOpHelper(funcNode, result))
+            switch (binaryOpHelper(op1, op2))
             {
                 case INT_TYPE:
                     result.value.ival = funcNode->op1->data.number.value.ival / funcNode->op2->data.number.value.ival;
                     break;
                 case DOUBLE_TYPE:
+                    result.type = DOUBLE_TYPE;
                     result.value.dval = funcNode->op1->data.number.value.dval / funcNode->op2->data.number.value.dval;
                     break;
             }
             break;
         case REMAINDER_OPER:
-            switch (binaryOpHelper(funcNode, result))
+            switch (binaryOpHelper(op1, op2))
             {
                 case INT_TYPE:
                     result.value.ival = funcNode->op1->data.number.value.ival % funcNode->op2->data.number.value.ival;
                     break;
                 case DOUBLE_TYPE:
+                    result.type = DOUBLE_TYPE;
                     result.value.dval =fmod(funcNode->op1->data.number.value.dval, funcNode->op2->data.number.value.dval);
                     break;
             }
             break;
         case LOG_OPER:
-            switch(funcNode->op1->type)
+            switch(funcNode->op1->data.number.type)
             {
                 case INT_TYPE:
                     result.value.ival = (int)log(funcNode->op1->data.number.value.ival);
@@ -324,37 +334,40 @@ RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode)
             }
             break;
         case POW_OPER:
-            switch (binaryOpHelper(funcNode, result))
+            switch (binaryOpHelper(op1, op2))
             {
                 case INT_TYPE:
                     result.value.ival = pow(funcNode->op1->data.number.value.ival, funcNode->op2->data.number.value.ival);
                     break;
                 case DOUBLE_TYPE:
+                    result.type = DOUBLE_TYPE;
                     result.value.dval = pow(funcNode->op1->data.number.value.dval, funcNode->op2->data.number.value.dval);
                     break;
             }
             break;
         case MAX_OPER:
-            switch (binaryOpHelper(funcNode, result))
+            switch (binaryOpHelper(op1, op2))
             {
                 case INT_TYPE:
                     result.value.ival = (funcNode->op1->data.number.value.ival > funcNode->op2->data.number.value.ival ?
                                          funcNode->op1->data.number.value.ival : funcNode->op2->data.number.value.ival );
                     break;
                 case DOUBLE_TYPE:
+                    result.type = DOUBLE_TYPE;
                     result.value.dval = (funcNode->op1->data.number.value.dval > funcNode->op2->data.number.value.dval ?
                                          funcNode->op1->data.number.value.dval : funcNode->op2->data.number.value.dval );
                     break;
             }
             break;
         case MIN_OPER:
-            switch (binaryOpHelper(funcNode, result))
+            switch (binaryOpHelper(op1, op2))
             {
                 case INT_TYPE:
                     result.value.ival = (funcNode->op1->data.number.value.ival < funcNode->op2->data.number.value.ival ?
                                          funcNode->op1->data.number.value.ival : funcNode->op2->data.number.value.ival );
                     break;
                 case DOUBLE_TYPE:
+                    result.type = DOUBLE_TYPE;
                     result.value.dval = (funcNode->op1->data.number.value.dval < funcNode->op2->data.number.value.dval ?
                                          funcNode->op1->data.number.value.dval : funcNode->op2->data.number.value.dval );
                     break;
@@ -397,23 +410,20 @@ RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode)
     return result;
 }
 
-int binaryOpHelper(FUNC_AST_NODE *funcNode, RET_VAL result)
+NUM_TYPE binaryOpHelper(RET_VAL op1, RET_VAL op2)
 {
-    int type;
-    if(funcNode->op1->type != funcNode->op2->type)
+    NUM_TYPE type;
+    if(op1.type != op2.type)
     {
-        result.type = DOUBLE_TYPE;
         type = DOUBLE_TYPE;
     }
-    else if (funcNode->op1->type == INT_TYPE)
+    else if( op1.type == INT_TYPE && op2.type == INT_TYPE)
     {
-        result.type = INT_TYPE;
         type = INT_TYPE;
     }
     else
     {
-        result.type = DOUBLE_TYPE;
-        type =DOUBLE_TYPE;
+        type = DOUBLE_TYPE;
     }
 
     return type;
@@ -421,7 +431,19 @@ int binaryOpHelper(FUNC_AST_NODE *funcNode, RET_VAL result)
 
 // prints the type and value of a RET_VAL
 
-void printRetVal(RET_VAL val)
-{
-    // TODO print the type and value of the value passed in.
+void printRetVal(RET_VAL val){
+    // TODO print the type and value of the value passed in. - Done
+
+    switch (val.type)
+    {
+        case INT_TYPE:
+            printf("\nType: INT");
+            printf("\nValue: %ld",val.value.ival);
+            break;
+        case DOUBLE_TYPE:
+            printf("\nType: DOUBLE");
+            printf("\nValue: %lf", val.value.dval);
+            break;
+    }
+
 }
