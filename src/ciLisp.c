@@ -508,10 +508,10 @@ SYMBOL_TABLE_NODE *createSymbolTable(char *symbol, AST_NODE *value)
     }
 
     //symbNode->ident = (char*)malloc(sizeof(strlen(symbol)) * sizeof(char) +1);
-    strcpy(symbNode->ident, symbol);
+    //strcpy(symbNode->ident, symbol);
+    symbNode->ident = symbol;
     symbNode->val = value;
 
-    printf("does this work?");
 
 
     return symbNode;
@@ -531,7 +531,6 @@ SYMBOL_TABLE_NODE *linkSymbolTables(SYMBOL_TABLE_NODE *list, SYMBOL_TABLE_NODE *
         yyerror("Memory allocation failed!");
     }
 
-    printf("does this work?");
 
     list->next = elem;
 }
