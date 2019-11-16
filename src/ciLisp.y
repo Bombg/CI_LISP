@@ -53,10 +53,12 @@ s_expr:
         $$ = $1;
     }
     | SYMBOL {
-    	$$ = createSymbolNode($1);
-    	printf("got here");
+    	fprintf(stderr, "yacc: s_expr ::= SYMBOL\n");
+    	$$ = createSymbAstNode($1);
+
     }
     | f_expr {
+    	fprintf(stderr, "yacc: s_expr ::= f_expr\n");
         $$ = $1;
     }
     | QUIT {
@@ -65,7 +67,7 @@ s_expr:
     }
     | LPAREN let_section s_expr RPAREN {
 	fprintf(stderr, "yacc: s_expr ::= LPAREN let_section s_expr RPAREN\n");
-	$$ = linkSymbolTables($2, $3);
+	$$ = linkAstSymbTable($2, $3);
     }
     | error {
         fprintf(stderr, "yacc: s_expr ::= error\n");
@@ -85,24 +87,24 @@ number:
 
 f_expr:
     LPAREN FUNC s_expr RPAREN {
-        fprintf(stderr, "yacc: s_expr ::= LPAREN FUNC expr RPAREN\n");
+        fprintf(stderr, "yacc: s_expr ::= LPAREN FUNC s_expr RPAREN\n");
         $$ = createFunctionNode($2, $3, NULL);
     }
     | LPAREN FUNC s_expr s_expr RPAREN {
-        fprintf(stderr, "yacc: s_expr ::= LPAREN FUNC expr expr RPAREN\n");
+        fprintf(stderr, "yacc: s_expr ::= LPAREN FUNC s_expr s_expr RPAREN\n");
         $$ = createFunctionNode($2, $3, $4);
     };
 
 let_section:
-    LPAREN LET let_list RPAREN {
+    LPAREN let_list RPAREN {
     	fprintf(stderr, "yacc: let_section ::= LPAREN let_list RPAREN\n");
-	$$ = $3;
+	$$ = $2;
     };
 
 let_list:
-     let_elem {
+     LET let_elem {
      	fprintf(stderr, "yacc: let_list ::= LET let_elem\n");
-	$$ = $1;
+	$$ = $2;
      }
      | let_list let_elem {
      	fprintf(stderr, "yacc: let_list ::= let_list let_elem\n");

@@ -108,7 +108,12 @@ AST_NODE *createFunctionNode(char *funcName, AST_NODE *op1, AST_NODE *op2)
 
     node->type = FUNC_NODE_TYPE;
     node->data.function.op1 = op1;
+    op1->parent = node;
     node->data.function.op2 = op2;
+    if(op2 != NULL)
+    {
+        op2->parent = node;
+    }
     node->data.function.oper = resolveFunc(funcName);
 
     free(funcName);
@@ -162,6 +167,10 @@ RET_VAL eval(AST_NODE *node)
             break;
         case NUM_NODE_TYPE:
             result = evalNumNode(&node->data.number);
+            break;
+        case SYMBOL_NODE_TYPE:
+            result = findSymbolValue(node, node->data.symbol.ident);
+            break;
         default:
             yyerror("Invalid AST_NODE_TYPE, probably invalid writes somewhere!");
     }
@@ -509,8 +518,29 @@ SYMBOL_TABLE_NODE *createSymbolTable(char *symbol, AST_NODE *value)
 
     //symbNode->ident = (char*)malloc(sizeof(strlen(symbol)) * sizeof(char) +1);
     //strcpy(symbNode->ident, symbol);
+
     symbNode->ident = symbol;
-    symbNode->val = value;
+
+    if(value->type == NUM_NODE_TYPE)
+    {
+        symbNode->val = value;
+    }
+    else if( value->type == FUNC_NODE_TYPE)
+    {
+        RET_VAL newVal = eval(value);
+
+        switch (newVal.type)
+        {
+            case INT_TYPE:
+                symbNode->val = createNumberNode(newVal.value.ival, newVal.type);
+                break;
+            case DOUBLE_TYPE:
+                symbNode->val = createNumberNode(newVal.value.dval, newVal.type);
+                break;
+        }
+    }
+
+
 
 
 
@@ -522,20 +552,73 @@ SYMBOL_TABLE_NODE *createSymbolTable(char *symbol, AST_NODE *value)
 SYMBOL_TABLE_NODE *linkSymbolTables(SYMBOL_TABLE_NODE *list, SYMBOL_TABLE_NODE *elem)
 {
 
-    SYMBOL_TABLE_NODE *symbNode;
-    size_t nodeSize;
+    elem->next = list;
 
-    nodeSize = sizeof(AST_NODE);
-    if ((symbNode = calloc(nodeSize, 1)) == NULL)
-    {
-        yyerror("Memory allocation failed!");
-    }
-
-
-    list->next = elem;
+    return elem;
 }
 
-SYMBOL_AST_NODE *createSymbolNode(char *symbol)
-{
 
+
+AST_NODE *linkAstSymbTable(SYMBOL_TABLE_NODE *tableHead, AST_NODE *funcNode)
+{
+    funcNode->symbolTable = tableHead;
+
+    return funcNode;
+}
+
+AST_NODE *createSymbAstNode(char *symbol)
+{
+    AST_NODE *node;
+    size_t nodeSize;
+    SYMBOL_AST_NODE *symbNode;
+
+    // allocate space (or error)
+    nodeSize = sizeof(AST_NODE);
+    if ((node = calloc(nodeSize, 1)) == NULL)
+        yyerror("Memory allocation failed!");
+
+    nodeSize = sizeof(SYMBOL_AST_NODE);
+    if ((symbNode = calloc(nodeSize, 1)) == NULL)
+        yyerror("Memory allocation failed!");
+
+    node->type = SYMBOL_NODE_TYPE;
+    symbNode->ident = symbol;
+
+
+    node->data.symbol = *symbNode;
+
+    return node;
+
+
+}
+
+RET_VAL findSymbolValue(AST_NODE *node, char *symbol) {
+    if (node->symbolTable != NULL) {
+        SYMBOL_TABLE_NODE *symbNode = node->symbolTable;
+
+        while (symbNode != NULL) {
+            if (strcmp(symbol, symbNode->ident) == 0) {
+                RET_VAL result = symbNode->val->data.number;
+
+                if (symbNode->val->data.number.type == INT_TYPE) {
+                    result.type = INT_TYPE;
+                    result.value.ival = symbNode->val->data.number.value.ival;
+                } else {
+                    result.type = DOUBLE_TYPE;
+                    result.value.dval = symbNode->val->data.number.value.dval;
+                }
+                return result;
+            }
+            symbNode = symbNode->next;
+        }
+    }
+    if (node->parent != NULL)
+    {
+        return findSymbolValue(node->parent, symbol);
+    }
+    else
+    {
+        printf("ERROR, Value for %s not found!", symbol);
+        exit(0);
+    }
 }

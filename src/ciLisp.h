@@ -51,7 +51,8 @@ OPER_TYPE resolveFunc(char *);
 // You will expand this enum as you build the project.
 typedef enum {
     NUM_NODE_TYPE,
-    FUNC_NODE_TYPE
+    FUNC_NODE_TYPE,
+    SYMBOL_NODE_TYPE
 } AST_NODE_TYPE;
 
 // Types of numeric values
@@ -118,7 +119,9 @@ RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode);
 NUM_TYPE binaryOpHelper(RET_VAL *op1, RET_VAL *op2);
 SYMBOL_TABLE_NODE *createSymbolTable(char *symbol, AST_NODE *value);
 SYMBOL_TABLE_NODE *linkSymbolTables(SYMBOL_TABLE_NODE *list, SYMBOL_TABLE_NODE *elem);
-SYMBOL_AST_NODE *createSymbolNode(char *symbol);
+AST_NODE *linkAstSymbTable(SYMBOL_TABLE_NODE *tableHead, AST_NODE *funcNode);
+AST_NODE *createSymbAstNode(char *symbol);
+RET_VAL findSymbolValue(AST_NODE *node, char *symbol);
 
 void printRetVal(RET_VAL val);
 
