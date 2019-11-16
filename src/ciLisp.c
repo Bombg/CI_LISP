@@ -51,7 +51,7 @@ OPER_TYPE resolveFunc(char *funcName)
 // Sets the AST_NODE's type to number.
 // Populates the value of the contained NUMBER_AST_NODE with the argument value.
 // SEE: AST_NODE, NUM_AST_NODE, AST_NODE_TYPE.
-AST_NODE *createNumberNode(double value, NUM_TYPE type)
+AST_NODE *createNumberNode(char *typeNum, double value, NUM_TYPE type)
 {
     AST_NODE *node;
     size_t nodeSize;
@@ -64,14 +64,41 @@ AST_NODE *createNumberNode(double value, NUM_TYPE type)
     // TODO set the AST_NODE's type, assign values to contained NUM_AST_NODE - Done
 
     node->type = NUM_NODE_TYPE;
-    node->data.number.type = type;
 
-    if(type == INT_TYPE)
+    if(typeNum == NULL || (strcmp("int",typeNum) == 0 && type == INT_TYPE)
+        || (strcmp("double",typeNum) == 0 && type == DOUBLE_TYPE))
     {
-        node->data.number.value.ival = value;
+
+        node->data.number.type = type;
+
+        if(type == INT_TYPE)
+        {
+            node->data.number.value.ival = value;
+        }
+        else
+        {
+            node->data.number.value.dval = value;
+        }
+    }
+    else if(strcmp("int",typeNum) == 0)
+    {
+        node->data.number.type = INT_TYPE;
+        printf("\"WARNING: precision loss in the typecasting of a number from double to int\"");
+
+        if(fmod(value,1) >= 0.5)
+        {
+            double newval = value + .5;
+            node->data.number.value.ival = newval;
+
+        }
+        else
+        {
+            node->data.number.value.ival = value;
+        }
     }
     else
     {
+        node->data.number.type = DOUBLE_TYPE;
         node->data.number.value.dval = value;
     }
 
@@ -505,7 +532,7 @@ void printRetVal(RET_VAL val){
 
 }
 
-SYMBOL_TABLE_NODE *createSymbolTable(char *symbol, AST_NODE *value)
+SYMBOL_TABLE_NODE *createSymbolTable(char* typeNum, char *symbol, AST_NODE *value)
 {
     SYMBOL_TABLE_NODE *symbNode;
     size_t nodeSize;
@@ -516,14 +543,42 @@ SYMBOL_TABLE_NODE *createSymbolTable(char *symbol, AST_NODE *value)
         yyerror("Memory allocation failed!");
     }
 
-    //symbNode->ident = (char*)malloc(sizeof(strlen(symbol)) * sizeof(char) +1);
-    //strcpy(symbNode->ident, symbol);
 
     symbNode->ident = symbol;
 
-    if(value->type == NUM_NODE_TYPE)
+    if(value->type == NUM_NODE_TYPE )
     {
-        symbNode->val = value;
+        if(typeNum == NULL || (strcmp("int",typeNum) == 0 && value->data.number.type == INT_TYPE)
+                              || (strcmp("double",typeNum) == 0 && value->data.number.type == DOUBLE_TYPE))
+        {
+            symbNode->val = value;
+        }
+        else
+        {
+            if(strcmp("int",typeNum) == 0)
+            {
+                printf("WARNING: precision loss in the assignment for variable %s",symbol);
+                value->data.number.type = INT_TYPE;
+                if(fmod(value->data.number.value.dval,1) >= 0.5)
+                {
+
+                    value->data.number.value.dval = value->data.number.value.dval + .5;
+                    value->data.number.value.ival = value->data.number.value.dval;
+
+                }
+                else
+                {
+                    value->data.number.value.ival = value->data.number.value.dval;
+                }
+                symbNode->val = value;
+            }
+            else
+            {
+                value->data.number.type = DOUBLE_TYPE;
+                value->data.number.value.dval = value->data.number.value.ival;
+                symbNode->val = value;
+            }
+        }
     }
     else if( value->type == FUNC_NODE_TYPE)
     {
@@ -532,10 +587,10 @@ SYMBOL_TABLE_NODE *createSymbolTable(char *symbol, AST_NODE *value)
         switch (newVal.type)
         {
             case INT_TYPE:
-                symbNode->val = createNumberNode(newVal.value.ival, newVal.type);
+                symbNode->val = createNumberNode(typeNum, newVal.value.ival, newVal.type);
                 break;
             case DOUBLE_TYPE:
-                symbNode->val = createNumberNode(newVal.value.dval, newVal.type);
+                symbNode->val = createNumberNode(typeNum, newVal.value.dval, newVal.type);
                 break;
         }
     }

@@ -55,10 +55,12 @@ typedef enum {
     SYMBOL_NODE_TYPE
 } AST_NODE_TYPE;
 
+
 // Types of numeric values
 typedef enum {
     INT_TYPE,
-    DOUBLE_TYPE
+    DOUBLE_TYPE,
+    NO_TYPE
 } NUM_TYPE;
 
 // Node to store a number.
@@ -91,6 +93,7 @@ typedef struct symbol_ast_node {
 }SYMBOL_AST_NODE;
 
 typedef struct symbol_table_node {
+    NUM_TYPE val_type;
     char *ident;
     struct ast_node *val;
     struct symbol_table_node *next;
@@ -107,17 +110,14 @@ typedef struct ast_node {
     } data;
 } AST_NODE;
 
-AST_NODE *createNumberNode(double value, NUM_TYPE type);
-
+AST_NODE *createNumberNode(char *typeNum, double value, NUM_TYPE type);
 AST_NODE *createFunctionNode(char *funcName, AST_NODE *op1, AST_NODE *op2);
-
 void freeNode(AST_NODE *node);
-
 RET_VAL eval(AST_NODE *node);
 RET_VAL evalNumNode(NUM_AST_NODE *numNode);
 RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode);
 NUM_TYPE binaryOpHelper(RET_VAL *op1, RET_VAL *op2);
-SYMBOL_TABLE_NODE *createSymbolTable(char *symbol, AST_NODE *value);
+SYMBOL_TABLE_NODE *createSymbolTable(char *typeNum, char *symbol, AST_NODE *value);
 SYMBOL_TABLE_NODE *linkSymbolTables(SYMBOL_TABLE_NODE *list, SYMBOL_TABLE_NODE *elem);
 AST_NODE *linkAstSymbTable(SYMBOL_TABLE_NODE *tableHead, AST_NODE *funcNode);
 AST_NODE *createSymbAstNode(char *symbol);
