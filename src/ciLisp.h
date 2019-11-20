@@ -81,8 +81,8 @@ typedef NUM_AST_NODE RET_VAL;
 typedef struct {
     OPER_TYPE oper;
     char* ident; // only needed for custom functions
-    struct ast_node *op1;
-    struct ast_node *op2;
+    struct ast_node *opList;
+    int numOps;
 } FUNC_AST_NODE;
 
 // Generic Abstract Syntax Tree node. Stores the type of node,
@@ -108,10 +108,11 @@ typedef struct ast_node {
         FUNC_AST_NODE function;
         SYMBOL_AST_NODE symbol;
     } data;
+    struct ast_node *next;
 } AST_NODE;
 
 AST_NODE *createNumberNode(char *typeNum, double value, NUM_TYPE type);
-AST_NODE *createFunctionNode(char *funcName, AST_NODE *op1, AST_NODE *op2);
+AST_NODE *createFunctionNode(char *funcName, AST_NODE *opList);
 void freeNode(AST_NODE *node);
 RET_VAL eval(AST_NODE *node);
 RET_VAL evalNumNode(NUM_AST_NODE *numNode);
@@ -122,6 +123,7 @@ SYMBOL_TABLE_NODE *linkSymbolTables(SYMBOL_TABLE_NODE *list, SYMBOL_TABLE_NODE *
 AST_NODE *linkAstSymbTable(SYMBOL_TABLE_NODE *tableHead, AST_NODE *funcNode);
 AST_NODE *createSymbAstNode(char *symbol);
 RET_VAL findSymbolValue(AST_NODE *node, char *symbol);
+AST_NODE *linkOpNodes(AST_NODE *newHead, AST_NODE *oldHead );
 
 void printRetVal(RET_VAL val);
 

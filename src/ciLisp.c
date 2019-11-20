@@ -115,7 +115,7 @@ AST_NODE *createNumberNode(char *typeNum, double value, NUM_TYPE type)
 //      - An OPER_TYPE (the enum identifying the specific function being called)
 //      - 2 AST_NODEs, the operands
 // SEE: AST_NODE, FUNC_AST_NODE, AST_NODE_TYPE.
-AST_NODE *createFunctionNode(char *funcName, AST_NODE *op1, AST_NODE *op2)
+AST_NODE *createFunctionNode(char *funcName, AST_NODE *opList)
 {
     AST_NODE *node;
     size_t nodeSize;
@@ -135,12 +135,13 @@ AST_NODE *createFunctionNode(char *funcName, AST_NODE *op1, AST_NODE *op2)
 
 
     node->type = FUNC_NODE_TYPE;
-    node->data.function.op1 = op1;
-    op1->parent = node;
-    node->data.function.op2 = op2;
-    if(op2 != NULL)
+    node->data.function.opList = opList;
+    AST_NODE *nextNode = opList;
+    while(nextNode != NULL)
     {
-        op2->parent = node;
+        nextNode->parent = node;
+        node->data.function.numOps++;
+        nextNode = nextNode->next;
     }
     node->data.function.oper = resolveFunc(funcName);
 
@@ -161,8 +162,7 @@ void freeNode(AST_NODE *node)
     if (node->type == FUNC_NODE_TYPE)
     {
         // Recursive calls to free child nodes
-        freeNode(node->data.function.op1);
-        freeNode(node->data.function.op2);
+        freeNode(node->data.function.opList->next);
 
         // Free up identifier string if necessary
         if (node->data.function.oper == CUSTOM_OPER)
@@ -692,4 +692,13 @@ RET_VAL findSymbolValue(AST_NODE *node, char *symbol) {
         printf("ERROR, Value for %s not found!", symbol);
         exit(0);
     }
+}
+
+
+AST_NODE *linkOpNodes(AST_NODE *newHead, AST_NODE *oldHead )
+{
+    newHead->next = oldHead;
+    oldHead->parent = newHead;
+
+    return newHead;
 }
