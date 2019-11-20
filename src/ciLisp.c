@@ -240,11 +240,14 @@ RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode)
 
     RET_VAL result = {INT_TYPE, NAN};
 
+
     // TODO populate result with the result of running the function on its operands. - Done
     // SEE: AST_NODE, AST_NODE_TYPE, FUNC_AST_NODE
 
     RET_VAL op1 = eval(funcNode->op1);
-    RET_VAL op2 = eval(funcNode->op2);
+    RET_VAL op2 =eval((funcNode->op2));
+
+
 
     switch(funcNode->oper)
     {
@@ -464,6 +467,18 @@ RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode)
 
             break;
         case PRINT_OPER:
+            printRetVal(op1);
+            printf("\n");
+            if(op1.type == INT_TYPE)
+            {
+                result.type = INT_TYPE;
+                result.value.ival = op1.value.ival;
+            }
+            else
+            {
+                result.type = DOUBLE_TYPE;
+                result.value.dval = op1.value.dval;
+            }
 
             break;
         case EQUAL_OPER:
