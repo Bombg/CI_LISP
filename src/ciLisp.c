@@ -31,6 +31,7 @@ char *funcNames[] = {
         "equal",
         "less",
         "greater",
+        "print",
         ""
 };
 
