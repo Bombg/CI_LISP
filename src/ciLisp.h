@@ -124,6 +124,9 @@ AST_NODE *linkAstSymbTable(SYMBOL_TABLE_NODE *tableHead, AST_NODE *funcNode);
 AST_NODE *createSymbAstNode(char *symbol);
 RET_VAL findSymbolValue(AST_NODE *node, char *symbol);
 AST_NODE *linkOpNodes(AST_NODE *newHead, AST_NODE *oldHead );
+RET_VAL *evalUnary(FUNC_AST_NODE *funcNode);
+RET_VAL *evalBinary(FUNC_AST_NODE *funcNode);
+RET_VAL *evalNary(FUNC_AST_NODE *funcNode);
 
 void printRetVal(RET_VAL val);
 

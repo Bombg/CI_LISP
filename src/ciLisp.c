@@ -162,6 +162,7 @@ void freeNode(AST_NODE *node)
     if (node->type == FUNC_NODE_TYPE)
     {
         // Recursive calls to free child nodes
+
         freeNode(node->data.function.opList->next);
 
         // Free up identifier string if necessary
@@ -238,14 +239,30 @@ RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode)
     if (!funcNode)
         return (RET_VAL){INT_TYPE, NAN};
 
-    RET_VAL result = {INT_TYPE, NAN};
+    RET_VAL *result;
 
 
     // TODO populate result with the result of running the function on its operands. - Done
     // SEE: AST_NODE, AST_NODE_TYPE, FUNC_AST_NODE
 
-    RET_VAL op1 = eval(funcNode->op1);
-    RET_VAL op2 =eval((funcNode->op2));
+
+//    switch (funcNode->numOps)
+//    {
+//        case 0:
+//
+//            break;
+//        case 1:
+//            result = evalUnary(funcNode);
+//            break;
+//        case 2:
+//            result = evalBinary(funcNode);
+//        case 3 ... 1000:
+//            result = evalNary(funcNode);
+//            break;
+//    }
+
+//    RET_VAL op1 = eval(funcNode->op1);
+//    RET_VAL op2 = eval((funcNode->op2));
 
 
 
@@ -701,4 +718,17 @@ AST_NODE *linkOpNodes(AST_NODE *newHead, AST_NODE *oldHead )
     oldHead->parent = newHead;
 
     return newHead;
+}
+
+RET_VAL *evalUnary(FUNC_AST_NODE *funcNode)
+{
+
+}
+RET_VAL *evalBinary(FUNC_AST_NODE *funcNode)
+{
+
+}
+RET_VAL *evalNary(FUNC_AST_NODE *funcNode)
+{
+
 }
