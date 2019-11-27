@@ -246,256 +246,38 @@ RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode)
     // SEE: AST_NODE, AST_NODE_TYPE, FUNC_AST_NODE
 
 
-//    switch (funcNode->numOps)
-//    {
-//        case 0:
-//
-//            break;
-//        case 1:
-//            result = evalUnary(funcNode);
-//            break;
-//        case 2:
-//            result = evalBinary(funcNode);
-//        case 3 ... 1000:
-//            result = evalNary(funcNode);
-//            break;
-//    }
-
-//    RET_VAL op1 = eval(funcNode->op1);
-//    RET_VAL op2 = eval((funcNode->op2));
-
 
 
     switch(funcNode->oper)
     {
         case NEG_OPER:
-            switch (op1.type)
-            {
-                case INT_TYPE:
-                    result.type = INT_TYPE;
-                    result.value.ival = -1 * op1.value.ival;
-                    break;
-                case DOUBLE_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    result.value.dval = -1 * op1.value.dval;
-                    break;
-            }
-            break;
         case ABS_OPER:
-            switch (op1.type)
-            {
-                case INT_TYPE:
-                    result.type = INT_TYPE;
-                    result.value.ival = labs(op1.value.ival);
-                    break;
-                case DOUBLE_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    result.value.dval = fabs(op1.value.dval);
-            }
-            break;
         case EXP_OPER:
-            switch (op1.type)
-            {
-                case INT_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    op1.value.dval = op1.value.ival;
-                    result.value.dval = exp(op1.value.dval);
-                    break;
-                case DOUBLE_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    result.value.dval = exp(op1.value.dval);
-                    break;
-            }
-            break;
         case SQRT_OPER:
-            switch (op1.type)
-            {
-                case INT_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    op1.value.dval = op1.value.ival;
-                    result.value.dval = sqrt(op1.value.dval);
-                    break;
-                case DOUBLE_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    result.value.dval = sqrt(op1.value.dval);
-                    break;
-            }
+        case LOG_OPER:
+        case EXP2_OPER:
+        case CBRT_OPER:
+            result = evalUnary(funcNode);
             break;
         case ADD_OPER:
-            switch (binaryOpHelper(&op1, &op2))
-            {
-                case INT_TYPE:
-                    result.value.ival = op1.value.ival + op2.value.ival;
-                    break;
-                case DOUBLE_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    result.value.dval = op1.value.dval + op2.value.dval;
-                    break;
-            }
+        case MULT_OPER:
+        case PRINT_OPER:
+            result = evalNary(funcNode);
             break;
         case SUB_OPER:
-            switch (binaryOpHelper(&op1, &op2))
-            {
-                case INT_TYPE:
-                    result.value.ival = op1.value.ival - op2.value.ival;
-                    break;
-                case DOUBLE_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    result.value.dval = op1.value.dval - op2.value.dval;
-                    break;
-            }
-            break;
-        case MULT_OPER:
-            switch (binaryOpHelper(&op1, &op2))
-            {
-                case INT_TYPE:
-                    result.value.ival = op1.value.ival * op2.value.ival;
-                    break;
-                case DOUBLE_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    result.value.dval = op1.value.dval * op2.value.dval;
-                    break;
-            }
-            break;
         case DIV_OPER:
-            switch (binaryOpHelper(&op1, &op2))
-            {
-                case INT_TYPE:
-                    result.value.ival = op1.value.ival / op2.value.ival;
-                    break;
-                case DOUBLE_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    result.value.dval = op1.value.dval / op2.value.dval;
-                    break;
-            }
-            break;
         case REMAINDER_OPER:
-            switch (binaryOpHelper(&op1, &op2))
-            {
-                case INT_TYPE:
-                    result.value.ival = op1.value.ival % op2.value.ival;
-                    break;
-                case DOUBLE_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    result.value.dval =fmod(op1.value.dval, op2.value.dval);
-                    break;
-            }
-            break;
-        case LOG_OPER:
-            switch(op1.type)
-            {
-                case INT_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    op1.value.dval = op1.value.ival;
-                    result.value.ival = (int)log(op1.value.dval);
-                    break;
-                case DOUBLE_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    result.value.dval = log(op1.value.dval);
-                    break;
-            }
-            break;
         case POW_OPER:
-            switch (binaryOpHelper(&op1, &op2))
-            {
-                case INT_TYPE:
-                    result.value.ival = pow(op1.value.ival, op2.value.ival);
-                    break;
-                case DOUBLE_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    result.value.dval = pow(op1.value.dval, op2.value.dval);
-                    break;
-            }
-            break;
         case MAX_OPER:
-            switch (binaryOpHelper(&op1, &op2))
-            {
-                case INT_TYPE:
-                    result.value.ival = (op1.value.ival > op2.value.ival ?
-                                         op1.value.ival : op2.value.ival );
-                    break;
-                case DOUBLE_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    result.value.dval = (op1.value.dval > op2.value.dval ?
-                                         op1.value.dval : op2.value.dval );
-                    break;
-            }
-            break;
         case MIN_OPER:
-            switch (binaryOpHelper(&op1, &op2))
-            {
-                case INT_TYPE:
-                    result.value.ival = (op1.value.ival < op2.value.ival ?
-                                         op1.value.ival : op2.value.ival );
-                    break;
-                case DOUBLE_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    result.value.dval = (op1.value.dval < op2.value.dval ?
-                                         op1.value.dval : op2.value.dval );
-                    break;
-            }
-            break;
-        case EXP2_OPER:
-            switch (op1.type)
-            {
-                case INT_TYPE:
-                    result.value.ival =  powl(2,op1.value.ival);
-                    break;
-                case DOUBLE_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    result.value.dval = pow(2, op1.value.dval);
-                    break;
-            }
-
-            break;
-        case CBRT_OPER: // cube root
-            switch (op1.type)
-            {
-                case INT_TYPE:
-                    result.value.ival = cbrtl(op1.value.ival);
-                    break;
-                case DOUBLE_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    result.value.dval = cbrt(op1.value.dval);
-                    break;
-            }
-
-            break;
         case HYPOT_OPER:
-            switch (binaryOpHelper(&op1, &op2))
-            {
-                case INT_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    op1.value.dval = op1.value.ival;
-                    op2.value.dval = op2.value.ival;
-                    result.value.dval = hypotl(op1.value.dval, op2.value.dval);
-                    break;
-                case DOUBLE_TYPE:
-                    result.type = DOUBLE_TYPE;
-                    result.value.dval = hypotl(op1.value.dval, op2.value.dval);
-                    break;
-            }
+            result = evalBinary(funcNode);
             break;
         case READ_OPER:
 
             break;
 
         case RAND_OPER:
-
-            break;
-        case PRINT_OPER:
-            printRetVal(op1);
-            printf("\n");
-            if(op1.type == INT_TYPE)
-            {
-                result.type = INT_TYPE;
-                result.value.ival = op1.value.ival;
-            }
-            else
-            {
-                result.type = DOUBLE_TYPE;
-                result.value.dval = op1.value.dval;
-            }
 
             break;
         case EQUAL_OPER:
@@ -513,7 +295,7 @@ RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode)
 
 
 
-    return result;
+    return (*result);
 }
 
 NUM_TYPE binaryOpHelper(RET_VAL *op1, RET_VAL *op2)
@@ -722,13 +504,356 @@ AST_NODE *linkOpNodes(AST_NODE *newHead, AST_NODE *oldHead )
 
 RET_VAL *evalUnary(FUNC_AST_NODE *funcNode)
 {
+    size_t  retvalSize;
+    retvalSize = sizeof(RET_VAL);
+    RET_VAL *result;
+    if ((result = calloc(retvalSize, 1)) == NULL)
+        yyerror("Memory allocation failed!");
+
+    if(funcNode->numOps > 1)
+    {
+        printf("Too many operators for this function!");
+        exit(0);
+    }
+    else
+    {
+        int numType = funcNode->opList->data.number.type;
+        switch (funcNode->oper)
+        {
+            case NEG_OPER:
+                switch (numType)
+                {
+                    case INT_TYPE:
+                        result->type = INT_TYPE;
+                        result->value.ival = -1 * funcNode->opList->data.number.value.ival;
+                        break;
+                    case DOUBLE_TYPE:
+                        result->type = DOUBLE_TYPE;
+                        result->value.dval = -1 * funcNode->opList->data.number.value.dval;
+                        break;
+                }
+                break;
+            case ABS_OPER:
+                switch (numType)
+                {
+                    case INT_TYPE:
+                        result->type = INT_TYPE;
+                        result->value.ival =  labs(funcNode->opList->data.number.value.ival);
+                        break;
+                    case DOUBLE_TYPE:
+                        result->type = DOUBLE_TYPE;
+                        result->value.dval =  fabs(funcNode->opList->data.number.value.dval);
+                        break;
+                }
+                break;
+            case EXP_OPER:
+                switch (numType)
+                {
+                    case INT_TYPE:
+                        result->type = INT_TYPE;
+                        result->value.ival = exp(funcNode->opList->data.number.value.ival);
+                        break;
+                    case DOUBLE_TYPE:
+                        result->type = DOUBLE_TYPE;
+                        result->value.dval = exp(funcNode->opList->data.number.value.dval);
+                        break;
+                }
+                break;
+            case SQRT_OPER:
+                switch (numType)
+                {
+                    case INT_TYPE:
+                        result->type = INT_TYPE;
+                        result->value.ival = sqrt(funcNode->opList->data.number.value.ival);
+                        break;
+                    case DOUBLE_TYPE:
+                        result->type = DOUBLE_TYPE;
+                        result->value.dval = sqrt(funcNode->opList->data.number.value.dval);
+                        break;
+                }
+                break;
+            case LOG_OPER:
+                switch (numType)
+                {
+                    case INT_TYPE:
+                        result->type = INT_TYPE;
+                        result->value.ival = log(funcNode->opList->data.number.value.ival);
+                        break;
+                    case DOUBLE_TYPE:
+                        result->type = DOUBLE_TYPE;
+                        result->value.dval = log(funcNode->opList->data.number.value.dval);
+                        break;
+                }
+                break;
+            case EXP2_OPER:
+                switch (numType)
+                {
+                    case INT_TYPE:
+                        result->type = INT_TYPE;
+                        result->value.ival = powl(2,funcNode->opList->data.number.value.ival);
+                        break;
+                    case DOUBLE_TYPE:
+                        result->type = DOUBLE_TYPE;
+                        result->value.dval = pow(2,funcNode->opList->data.number.value.dval);
+                        break;
+                }
+                break;
+            case CBRT_OPER:
+                switch (numType)
+                {
+                    case INT_TYPE:
+                        result->type = INT_TYPE;
+                        result->value.ival = cbrtl(funcNode->opList->data.number.value.ival);
+                        break;
+                    case DOUBLE_TYPE:
+                        result->type = DOUBLE_TYPE;
+                        result->value.dval = cbrt(funcNode->opList->data.number.value.dval);
+                        break;
+                }
+                break;
+        }
+    }
+
+    return result;
 
 }
 RET_VAL *evalBinary(FUNC_AST_NODE *funcNode)
 {
+    size_t  retvalSize;
+    retvalSize = sizeof(RET_VAL);
+    RET_VAL *result;
+    if ((result = calloc(retvalSize, 1)) == NULL)
+        yyerror("Memory allocation failed!");
+    RET_VAL op1 = eval(funcNode->opList);
+    RET_VAL op2 = eval(funcNode->opList->next);
+
+    if(funcNode->numOps != 2)
+    {
+        printf("Too many or too few operators for this function type");
+        exit(0);
+    }
+    else
+    {
+        switch (funcNode->oper)
+        {
+            case SUB_OPER:
+                switch (binaryOpHelper(&op1, &op2))
+                {
+                    case INT_TYPE:
+                        result->value.ival = op1.value.ival - op2.value.ival;
+                        break;
+                    case DOUBLE_TYPE:
+                        result->type = DOUBLE_TYPE;
+                        result->value.dval = op1.value.dval - op2.value.dval;
+                        break;
+                }
+                break;
+            case DIV_OPER:
+                switch (binaryOpHelper(&op1, &op2))
+                {
+                    case INT_TYPE:
+                        result->value.ival = op1.value.ival / op2.value.ival;
+                        break;
+                    case DOUBLE_TYPE:
+                        result->type = DOUBLE_TYPE;
+                        result->value.dval = op1.value.dval / op2.value.dval;
+                        break;
+                }
+                break;
+            case REMAINDER_OPER:
+                switch (binaryOpHelper(&op1, &op2))
+                {
+                    case INT_TYPE:
+                        result->value.ival = op1.value.ival % op2.value.ival;
+                        break;
+                    case DOUBLE_TYPE:
+                        result->type = DOUBLE_TYPE;
+                        result->value.dval =fmod(op1.value.dval, op2.value.dval);
+                }
+                break;
+            case POW_OPER:
+                switch (binaryOpHelper(&op1, &op2))
+                {
+                    case INT_TYPE:
+                        result->value.ival = pow(op1.value.ival, op2.value.ival);
+                        break;
+                    case DOUBLE_TYPE:
+                        result->type = DOUBLE_TYPE;
+                        result->value.dval = pow(op1.value.dval, op2.value.dval);
+                        break;
+                }
+                break;
+            case MAX_OPER:
+                switch (binaryOpHelper(&op1, &op2))
+                {
+                    case INT_TYPE:
+                        result->value.ival = (op1.value.ival > op2.value.ival ?
+                                             op1.value.ival : op2.value.ival );
+                        break;
+                    case DOUBLE_TYPE:
+                        result->type = DOUBLE_TYPE;
+                        result->value.dval = (op1.value.dval > op2.value.dval ?
+                                             op1.value.dval : op2.value.dval );
+                        break;
+                }
+                break;
+            case MIN_OPER:
+                switch (binaryOpHelper(&op1, &op2))
+                {
+                    case INT_TYPE:
+                        result->value.ival = (op1.value.ival < op2.value.ival ?
+                                             op1.value.ival : op2.value.ival );
+                        break;
+                    case DOUBLE_TYPE:
+                        result->type = DOUBLE_TYPE;
+                        result->value.dval = (op1.value.dval < op2.value.dval ?
+                                             op1.value.dval : op2.value.dval );
+                        break;
+                }
+                break;
+            case HYPOT_OPER:
+                switch (binaryOpHelper(&op1, &op2))
+                {
+                    case INT_TYPE:
+                        result->type = DOUBLE_TYPE;
+                        op1.value.dval = op1.value.ival;
+                        op2.value.dval = op2.value.ival;
+                        result->value.dval = hypotl(op1.value.dval, op2.value.dval);
+                        break;
+                    case DOUBLE_TYPE:
+                        result->type = DOUBLE_TYPE;
+                        result->value.dval = hypotl(op1.value.dval, op2.value.dval);
+                        break;
+                }
+                break;
+        }
+    }
+
+return result;
 
 }
 RET_VAL *evalNary(FUNC_AST_NODE *funcNode)
 {
+    size_t  retvalSize;
+    retvalSize = sizeof(RET_VAL);
+    RET_VAL *result;
+    if ((result = calloc(retvalSize, 1)) == NULL)
+        yyerror("Memory allocation failed!");
 
+    AST_NODE *tempNode = funcNode->opList;
+    int isDoub = 0;
+
+    if(tempNode->data.number.type == DOUBLE_TYPE)
+    {
+        result->type = DOUBLE_TYPE;
+        isDoub = 1;
+    }
+    else
+    {
+        result->type = INT_TYPE;
+    }
+
+    RET_VAL tempRet;
+
+    switch(funcNode->oper)
+    {
+        case ADD_OPER:
+
+            for(int i = 0; i < funcNode->numOps; i++)
+            {
+                switch(isDoub)
+                {
+                    case 0:
+                        if(tempNode->data.number.type == DOUBLE_TYPE)
+                        {
+                            result->value.dval = result->value.ival;
+                            result->value.dval += tempNode->data.number.value.dval;
+                            result->type = DOUBLE_TYPE;
+                            isDoub = 1;
+                        }
+                        else
+                        {
+                            result->value.ival += tempNode->data.number.value.ival;
+                        }
+                        break;
+                    case 1:
+                        if(tempNode->data.number.type == DOUBLE_TYPE)
+                        {
+                            result->value.dval += tempNode->data.number.value.dval;
+                        }
+                        else
+                        {
+                            result->value.dval += tempNode->data.number.value.ival;
+                        }
+                        break;
+                }
+                tempNode = tempNode->next;
+            }
+            break;
+        case MULT_OPER:
+            if(isDoub == 0)
+            {
+                result->value.ival = tempNode->data.number.value.ival;
+            }
+            else
+            {
+                result->value.dval = tempNode->data.number.value.dval;
+            }
+            tempNode = tempNode->next;
+            for(int i = 1; i < funcNode->numOps; i++)
+            {
+                switch(isDoub)
+                {
+                    case 0:
+                        if(tempNode->data.number.type == DOUBLE_TYPE)
+                        {
+                            result->value.dval = result->value.ival;
+                            result->value.dval *= tempNode->data.number.value.dval;
+                            result->type = DOUBLE_TYPE;
+                            isDoub = 1;
+                        }
+                        else
+                        {
+                            result->value.ival *= tempNode->data.number.value.ival;
+                        }
+                        break;
+                    case 1:
+                        if(tempNode->data.number.type == DOUBLE_TYPE)
+                        {
+                            result->value.dval *= tempNode->data.number.value.dval;
+                        }
+                        else
+                        {
+                            result->value.dval *= tempNode->data.number.value.ival;
+                        }
+                        break;
+                }
+                tempNode = tempNode->next;
+            }
+            break;
+        case PRINT_OPER:
+
+            for(int i = 0; i < funcNode->numOps; i++)
+            {
+                tempRet = eval(tempNode);
+                printRetVal(tempRet);
+                printf("\n");
+                tempNode = tempNode->next;
+
+            }
+
+            if(isDoub == 0)
+            {
+
+                result->value.ival = funcNode->opList->data.number.value.ival;
+            }
+            else
+            {
+                result->value.dval = funcNode->opList->data.number.value.dval;
+            }
+            break;
+    }
+
+
+    return result;
 }

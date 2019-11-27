@@ -8,7 +8,7 @@
 
 digit [0-9]
 int_literal [+-]?{digit}+
-double_literal [+-]?{digit}\.{digit}*
+double_literal [+-]?{digit}+\.{digit}*
 func "neg"|"abs"|"exp"|"sqrt"|"add"|"sub"|"mult"|"div"|"remainder"|"log"|"pow"|"max"|"min"|"exp2"|"cbrt"|"hypot"|"print"
 letter [a-zA-Z]
 symbol {letter}+
