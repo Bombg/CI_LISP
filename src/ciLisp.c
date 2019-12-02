@@ -137,10 +137,13 @@ AST_NODE *createFunctionNode(char *funcName, AST_NODE *opList)
     node->type = FUNC_NODE_TYPE;
     node->data.function.opList = opList;
     AST_NODE *nextNode = opList;
+    AST_NODE *previous = node;
+
     while(nextNode != NULL)
     {
-        nextNode->parent = node;
+        nextNode->parent = previous;
         node->data.function.numOps++;
+        previous = nextNode;
         nextNode = nextNode->next;
     }
     node->data.function.oper = resolveFunc(funcName);
@@ -510,6 +513,8 @@ RET_VAL *evalUnary(FUNC_AST_NODE *funcNode)
     if ((result = calloc(retvalSize, 1)) == NULL)
         yyerror("Memory allocation failed!");
 
+
+
     if(funcNode->numOps > 1)
     {
         printf("Too many operators for this function!");
@@ -517,7 +522,8 @@ RET_VAL *evalUnary(FUNC_AST_NODE *funcNode)
     }
     else
     {
-        int numType = funcNode->opList->data.number.type;
+        RET_VAL op1 = eval(funcNode->opList);
+        int numType = op1.type;
         switch (funcNode->oper)
         {
             case NEG_OPER:
@@ -525,11 +531,11 @@ RET_VAL *evalUnary(FUNC_AST_NODE *funcNode)
                 {
                     case INT_TYPE:
                         result->type = INT_TYPE;
-                        result->value.ival = -1 * funcNode->opList->data.number.value.ival;
+                        result->value.ival = -1 * op1.value.ival;
                         break;
                     case DOUBLE_TYPE:
                         result->type = DOUBLE_TYPE;
-                        result->value.dval = -1 * funcNode->opList->data.number.value.dval;
+                        result->value.dval = -1 * op1.value.dval;
                         break;
                 }
                 break;
@@ -538,11 +544,11 @@ RET_VAL *evalUnary(FUNC_AST_NODE *funcNode)
                 {
                     case INT_TYPE:
                         result->type = INT_TYPE;
-                        result->value.ival =  labs(funcNode->opList->data.number.value.ival);
+                        result->value.ival =  labs(op1.value.ival);
                         break;
                     case DOUBLE_TYPE:
                         result->type = DOUBLE_TYPE;
-                        result->value.dval =  fabs(funcNode->opList->data.number.value.dval);
+                        result->value.dval =  fabs(op1.value.dval);
                         break;
                 }
                 break;
@@ -551,11 +557,11 @@ RET_VAL *evalUnary(FUNC_AST_NODE *funcNode)
                 {
                     case INT_TYPE:
                         result->type = INT_TYPE;
-                        result->value.ival = exp(funcNode->opList->data.number.value.ival);
+                        result->value.ival = exp(op1.value.ival);
                         break;
                     case DOUBLE_TYPE:
                         result->type = DOUBLE_TYPE;
-                        result->value.dval = exp(funcNode->opList->data.number.value.dval);
+                        result->value.dval = exp(op1.value.dval);
                         break;
                 }
                 break;
@@ -564,11 +570,11 @@ RET_VAL *evalUnary(FUNC_AST_NODE *funcNode)
                 {
                     case INT_TYPE:
                         result->type = INT_TYPE;
-                        result->value.ival = sqrt(funcNode->opList->data.number.value.ival);
+                        result->value.ival = sqrt(op1.value.ival);
                         break;
                     case DOUBLE_TYPE:
                         result->type = DOUBLE_TYPE;
-                        result->value.dval = sqrt(funcNode->opList->data.number.value.dval);
+                        result->value.dval = sqrt(op1.value.dval);
                         break;
                 }
                 break;
@@ -577,11 +583,11 @@ RET_VAL *evalUnary(FUNC_AST_NODE *funcNode)
                 {
                     case INT_TYPE:
                         result->type = INT_TYPE;
-                        result->value.ival = log(funcNode->opList->data.number.value.ival);
+                        result->value.ival = log(op1.value.ival);
                         break;
                     case DOUBLE_TYPE:
                         result->type = DOUBLE_TYPE;
-                        result->value.dval = log(funcNode->opList->data.number.value.dval);
+                        result->value.dval = log(op1.value.dval);
                         break;
                 }
                 break;
@@ -590,11 +596,11 @@ RET_VAL *evalUnary(FUNC_AST_NODE *funcNode)
                 {
                     case INT_TYPE:
                         result->type = INT_TYPE;
-                        result->value.ival = powl(2,funcNode->opList->data.number.value.ival);
+                        result->value.ival = powl(2,op1.value.ival);
                         break;
                     case DOUBLE_TYPE:
                         result->type = DOUBLE_TYPE;
-                        result->value.dval = pow(2,funcNode->opList->data.number.value.dval);
+                        result->value.dval = pow(2,op1.value.dval);
                         break;
                 }
                 break;
@@ -603,11 +609,11 @@ RET_VAL *evalUnary(FUNC_AST_NODE *funcNode)
                 {
                     case INT_TYPE:
                         result->type = INT_TYPE;
-                        result->value.ival = cbrtl(funcNode->opList->data.number.value.ival);
+                        result->value.ival = cbrtl(op1.value.ival);
                         break;
                     case DOUBLE_TYPE:
                         result->type = DOUBLE_TYPE;
-                        result->value.dval = cbrt(funcNode->opList->data.number.value.dval);
+                        result->value.dval = cbrt(op1.value.dval);
                         break;
                 }
                 break;
@@ -742,8 +748,9 @@ RET_VAL *evalNary(FUNC_AST_NODE *funcNode)
 
     AST_NODE *tempNode = funcNode->opList;
     int isDoub = 0;
+    RET_VAL op = eval(tempNode);
 
-    if(tempNode->data.number.type == DOUBLE_TYPE)
+    if(op.type == DOUBLE_TYPE)
     {
         result->type = DOUBLE_TYPE;
         isDoub = 1;
@@ -755,6 +762,8 @@ RET_VAL *evalNary(FUNC_AST_NODE *funcNode)
 
     RET_VAL tempRet;
 
+
+
     switch(funcNode->oper)
     {
         case ADD_OPER:
@@ -764,71 +773,74 @@ RET_VAL *evalNary(FUNC_AST_NODE *funcNode)
                 switch(isDoub)
                 {
                     case 0:
-                        if(tempNode->data.number.type == DOUBLE_TYPE)
+                        if(op.type == DOUBLE_TYPE)
                         {
                             result->value.dval = result->value.ival;
-                            result->value.dval += tempNode->data.number.value.dval;
+                            result->value.dval += op.value.dval;
                             result->type = DOUBLE_TYPE;
                             isDoub = 1;
                         }
                         else
                         {
-                            result->value.ival += tempNode->data.number.value.ival;
+                            result->value.ival += op.value.ival;
                         }
                         break;
                     case 1:
-                        if(tempNode->data.number.type == DOUBLE_TYPE)
+                        if(op.type == DOUBLE_TYPE)
                         {
-                            result->value.dval += tempNode->data.number.value.dval;
+                            result->value.dval += op.value.dval;
                         }
                         else
                         {
-                            result->value.dval += tempNode->data.number.value.ival;
+                            result->value.dval += op.value.ival;
                         }
                         break;
                 }
                 tempNode = tempNode->next;
+                op = eval(tempNode);
             }
             break;
         case MULT_OPER:
             if(isDoub == 0)
             {
-                result->value.ival = tempNode->data.number.value.ival;
+                result->value.ival = op.value.ival;
             }
             else
             {
-                result->value.dval = tempNode->data.number.value.dval;
+                result->value.dval = op.value.dval;
             }
             tempNode = tempNode->next;
+            op = eval(tempNode);
             for(int i = 1; i < funcNode->numOps; i++)
             {
                 switch(isDoub)
                 {
                     case 0:
-                        if(tempNode->data.number.type == DOUBLE_TYPE)
+                        if(op.type == DOUBLE_TYPE)
                         {
                             result->value.dval = result->value.ival;
-                            result->value.dval *= tempNode->data.number.value.dval;
+                            result->value.dval *= op.value.dval;
                             result->type = DOUBLE_TYPE;
                             isDoub = 1;
                         }
                         else
                         {
-                            result->value.ival *= tempNode->data.number.value.ival;
+                            result->value.ival *= op.value.ival;
                         }
                         break;
                     case 1:
-                        if(tempNode->data.number.type == DOUBLE_TYPE)
+                        if(op.type == DOUBLE_TYPE)
                         {
-                            result->value.dval *= tempNode->data.number.value.dval;
+                            result->value.dval *= op.value.dval;
                         }
                         else
                         {
-                            result->value.dval *= tempNode->data.number.value.ival;
+                            result->value.dval *= op.value.ival;
                         }
                         break;
                 }
                 tempNode = tempNode->next;
+                op = eval(tempNode);
             }
             break;
         case PRINT_OPER:
@@ -845,11 +857,11 @@ RET_VAL *evalNary(FUNC_AST_NODE *funcNode)
             if(isDoub == 0)
             {
 
-                result->value.ival = funcNode->opList->data.number.value.ival;
+                result->value.ival = op.value.ival;
             }
             else
             {
-                result->value.dval = funcNode->opList->data.number.value.dval;
+                result->value.dval = op.value.dval;
             }
             break;
     }
