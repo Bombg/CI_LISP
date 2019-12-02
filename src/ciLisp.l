@@ -9,7 +9,7 @@
 digit [0-9]
 int_literal [+-]?{digit}+
 double_literal [+-]?{digit}+\.{digit}*
-func "neg"|"abs"|"exp"|"sqrt"|"add"|"sub"|"mult"|"div"|"remainder"|"log"|"pow"|"max"|"min"|"exp2"|"cbrt"|"hypot"|"print"
+func "neg"|"abs"|"exp"|"sqrt"|"add"|"sub"|"mult"|"div"|"remainder"|"log"|"pow"|"max"|"min"|"exp2"|"cbrt"|"hypot"|"print"|"rand"|"read"|"equal"|"less"|"greater"
 letter [a-zA-Z]
 symbol {letter}+
 type "int"|"double"

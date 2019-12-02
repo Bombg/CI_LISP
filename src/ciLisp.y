@@ -50,6 +50,9 @@ s_expr:
 	fprintf(stderr, "yacc: s_expr ::= LPAREN let_section s_expr RPAREN\n");
 	$$ = linkAstSymbTable($2, $3);
     }
+    | LPAREN COND s_expr s_expr s_expr RPAREN {
+
+    }
     | error {
         fprintf(stderr, "yacc: s_expr ::= error\n");
         yyerror("unexpected token");
