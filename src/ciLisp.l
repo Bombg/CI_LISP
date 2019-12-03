@@ -65,6 +65,10 @@ type "int"|"double"
     YY_FLUSH_BUFFER;
     return EOL;
     }
+"cond" {
+    fprintf(stderr, "lex: COND\n");
+    return COND;
+    }
 {symbol} {
      yylval.sval = (char *)malloc(strlen(yytext)*sizeof(char)+1);
      strcpy(yylval.sval, yytext);

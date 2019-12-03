@@ -52,7 +52,8 @@ OPER_TYPE resolveFunc(char *);
 typedef enum {
     NUM_NODE_TYPE,
     FUNC_NODE_TYPE,
-    SYMBOL_NODE_TYPE
+    SYMBOL_NODE_TYPE,
+    COND_NODE_TYPE
 } AST_NODE_TYPE;
 
 
@@ -99,6 +100,13 @@ typedef struct symbol_table_node {
     struct symbol_table_node *next;
 }SYMBOL_TABLE_NODE;
 
+typedef struct {
+    struct ast_node *cond;
+    struct ast_node *ifTrue;
+    struct ast_node *ifFalse;
+
+}COND_AST_NODE;
+
 typedef struct ast_node {
     AST_NODE_TYPE type;
     SYMBOL_TABLE_NODE *symbolTable;
@@ -107,9 +115,12 @@ typedef struct ast_node {
         NUM_AST_NODE number;
         FUNC_AST_NODE function;
         SYMBOL_AST_NODE symbol;
+        COND_AST_NODE condition;
     } data;
     struct ast_node *next;
 } AST_NODE;
+
+
 
 AST_NODE *createNumberNode(char *typeNum, double value, NUM_TYPE type);
 AST_NODE *createFunctionNode(char *funcName, AST_NODE *opList);
@@ -127,6 +138,8 @@ AST_NODE *linkOpNodes(AST_NODE *newHead, AST_NODE *oldHead );
 RET_VAL *evalUnary(FUNC_AST_NODE *funcNode);
 RET_VAL *evalBinary(FUNC_AST_NODE *funcNode);
 RET_VAL *evalNary(FUNC_AST_NODE *funcNode);
+AST_NODE *createCondAst(AST_NODE *condition, AST_NODE *ifTrue, AST_NODE *ifFalse);
+RET_VAL evalCondNode(COND_AST_NODE *node);
 
 void printRetVal(RET_VAL val);
 

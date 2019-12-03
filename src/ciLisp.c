@@ -203,6 +203,8 @@ RET_VAL eval(AST_NODE *node)
         case SYMBOL_NODE_TYPE:
             result = findSymbolValue(node, node->data.symbol.ident);
             break;
+        case COND_NODE_TYPE:
+            result = evalCondNode(&node->data.condition);
         default:
             yyerror("Invalid AST_NODE_TYPE, probably invalid writes somewhere!");
     }
@@ -260,6 +262,8 @@ RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode)
         case LOG_OPER:
         case EXP2_OPER:
         case CBRT_OPER:
+        case READ_OPER:
+        case RAND_OPER:
             result = evalUnary(funcNode);
             break;
         case ADD_OPER:
@@ -274,24 +278,12 @@ RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode)
         case MAX_OPER:
         case MIN_OPER:
         case HYPOT_OPER:
+        case EQUAL_OPER:
+        case LESS_OPER:
+        case GREATER_OPER:
             result = evalBinary(funcNode);
             break;
-        case READ_OPER:
 
-            break;
-
-        case RAND_OPER:
-
-            break;
-        case EQUAL_OPER:
-
-            break;
-        case LESS_OPER:
-
-            break;
-        case GREATER_OPER:
-
-            break;
     }
 
 
@@ -349,6 +341,8 @@ void printRetVal(RET_VAL val){
     }
 
 }
+
+
 
 SYMBOL_TABLE_NODE *createSymbolTable(char* typeNum, char *symbol, AST_NODE *value)
 {
@@ -512,6 +506,8 @@ RET_VAL *evalUnary(FUNC_AST_NODE *funcNode)
     RET_VAL *result;
     if ((result = calloc(retvalSize, 1)) == NULL)
         yyerror("Memory allocation failed!");
+    char tempScan[65];
+
 
 
 
@@ -616,6 +612,79 @@ RET_VAL *evalUnary(FUNC_AST_NODE *funcNode)
                         result->value.dval = cbrt(op1.value.dval);
                         break;
                 }
+                break;
+            case RAND_OPER:
+                result->type = DOUBLE_TYPE;
+                result->value.dval = ((double)rand() / (double)RAND_MAX);
+                break;
+            case READ_OPER:
+                printf("\nread := ");
+                scanf("%s",tempScan);
+                bool isdouble = false;
+                int ASCIIZERO = 48;
+                int ASCIININE = 57;
+
+                for(int i = 0 ; i < 65 && tempScan[i] != '\0'; i++)
+                {
+                    if(tempScan[i] == '.')
+                    {
+                        if(isdouble)
+                        {
+                            printf("Bad input for number\n");
+                            exit(0);
+                        }
+                        isdouble = true;
+                    }
+                    else if((tempScan[i] < ASCIIZERO || tempScan[i] > ASCIININE) && tempScan[i] != '.' )
+                    {
+                        printf("Bad input for number\n");
+                        exit(0);
+                    }
+                }
+
+
+                if(isdouble)
+                {
+                    result->type = DOUBLE_TYPE;
+                    bool pointFound;
+                    double decPlace = 10;
+                    result->value.dval = (tempScan[0] - ASCIIZERO);
+                    for(int i = 1; i < 65 && tempScan[i] != '\0'; i++)
+                    {
+                        if(tempScan[i] == '.')
+                        {
+                            pointFound = true;
+                        }
+                        else
+                        {
+                            if(!pointFound)
+                            {
+                                result->value.dval *=10;
+                                result->value.dval+= (tempScan[i] - ASCIIZERO);
+                            }
+                            else
+                            {
+                                result->value.dval += (tempScan[i] - ASCIIZERO) / decPlace;
+                                decPlace *= 10;
+                            }
+                        }
+
+
+                    }
+                }
+                else
+                {
+                    result->type = INT_TYPE;
+                    result->value.ival  = (tempScan[0] - ASCIIZERO);
+                    for(int i = 1; i < 65 && tempScan[i] != '\0'; i++)
+                    {
+                        result->value.ival *= 10;
+                        result->value.ival += (tempScan[i] - ASCIIZERO);
+                    }
+                }
+
+
+
                 break;
         }
     }
@@ -730,6 +799,78 @@ RET_VAL *evalBinary(FUNC_AST_NODE *funcNode)
                         result->type = DOUBLE_TYPE;
                         result->value.dval = hypotl(op1.value.dval, op2.value.dval);
                         break;
+                }
+                break;
+            case GREATER_OPER:
+                if(op1.type == op2.type)
+                {
+                    if(op1.type == INT_TYPE)
+                    {
+                        result->value.ival = op1.value.ival > op2.value.ival ? 1 : 0 ;
+                    }
+                    else
+                    {
+                        result->value.ival =op1.value.dval > op2.value.dval ? 1 : 0 ;
+                    }
+                }
+                else
+                {
+                    if(op1.type == INT_TYPE)
+                    {
+                        result->value.ival = op1.value.ival > op2.value.dval ? 1 : 0 ;
+                    }
+                    else
+                    {
+                        result->value.dval =op1.value.dval > op2.value.ival ? 1 : 0 ;
+                    }
+                }
+                break;
+            case LESS_OPER:
+                if(op1.type == op2.type)
+                {
+                    if(op1.type == INT_TYPE)
+                    {
+                        result->value.ival = op1.value.ival < op2.value.ival ? 1 : 0 ;
+                    }
+                    else
+                    {
+                        result->value.ival =op1.value.dval < op2.value.dval ? 1 : 0 ;
+                    }
+                }
+                else
+                {
+                    if(op1.type == INT_TYPE)
+                    {
+                        result->value.ival = op1.value.ival < op2.value.dval ? 1 : 0 ;
+                    }
+                    else
+                    {
+                        result->value.dval =op1.value.dval < op2.value.ival ? 1 : 0 ;
+                    }
+                }
+                break;
+            case EQUAL_OPER:
+                if(op1.type == op2.type)
+                {
+                    if(op1.type == INT_TYPE)
+                    {
+                        result->value.ival = op1.value.ival == op2.value.ival ? 1 : 0 ;
+                    }
+                    else
+                    {
+                        result->value.ival =op1.value.dval == op2.value.dval ? 1 : 0 ;
+                    }
+                }
+                else
+                {
+                    if(op1.type == INT_TYPE)
+                    {
+                        result->value.ival = op1.value.ival == op2.value.dval ? 1 : 0 ;
+                    }
+                    else
+                    {
+                        result->value.dval =op1.value.dval == op2.value.ival ? 1 : 0 ;
+                    }
                 }
                 break;
         }
@@ -866,6 +1007,42 @@ RET_VAL *evalNary(FUNC_AST_NODE *funcNode)
             break;
     }
 
+
+    return result;
+}
+
+AST_NODE *createCondAst(AST_NODE *condition, AST_NODE *ifTrue, AST_NODE *ifFalse)
+{
+    size_t  condSize;
+    condSize = sizeof(AST_NODE);
+    AST_NODE *node;
+    if ((node = calloc(condSize, 1)) == NULL)
+        yyerror("Memory allocation failed!");
+
+
+    node->type = COND_NODE_TYPE;
+    node->data.condition.cond = condition;
+    node->data.condition.ifTrue = ifTrue;
+    node->data.condition.ifFalse = ifFalse;
+
+    return node;
+
+}
+
+RET_VAL evalCondNode(COND_AST_NODE *node)
+{
+    RET_VAL result;
+
+    result = evalFuncNode(&node->cond->data.function);
+
+    if(result.value.ival == 1)
+    {
+        result = eval(node->ifTrue);
+    }
+    else
+    {
+        result = eval(node->ifFalse);
+    }
 
     return result;
 }

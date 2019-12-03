@@ -11,7 +11,7 @@
 
 %token <sval> FUNC SYMBOL TYPE
 %token <dval> INT_LITERAL DOUBLE_LITERAL
-%token LPAREN RPAREN EOL QUIT LET
+%token LPAREN RPAREN EOL QUIT LET COND
 
 %type <astNode> s_expr f_expr number s_expr_list
 %type <symbTable> let_elem let_list let_section
@@ -51,7 +51,7 @@ s_expr:
 	$$ = linkAstSymbTable($2, $3);
     }
     | LPAREN COND s_expr s_expr s_expr RPAREN {
-
+	$$ = createCondAst($3, $4, $5);
     }
     | error {
         fprintf(stderr, "yacc: s_expr ::= error\n");
