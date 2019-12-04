@@ -154,7 +154,16 @@ AST_NODE *createFunctionNode(char *funcName, AST_NODE *opList)
    }
     node->data.function.oper = resolveFunc(funcName);
 
-    free(funcName);
+   if(node->data.function.oper != CUSTOM_OPER)
+   {
+       free(funcName);
+   }
+   else
+   {
+       node->data.function.ident = funcName;
+   }
+
+
 
     return node;
 }
@@ -350,7 +359,7 @@ void printRetVal(RET_VAL val){
 
 
 
-SYMBOL_TABLE_NODE *createSymbolTable(char* typeNum, char *symbol, AST_NODE *value)
+SYMBOL_TABLE_NODE *createSymbolTable(char* typeNum, char *symbol, AST_NODE *value, SYMBOL_TYPE type)
 {
     SYMBOL_TABLE_NODE *symbNode;
     size_t nodeSize;
@@ -363,6 +372,7 @@ SYMBOL_TABLE_NODE *createSymbolTable(char* typeNum, char *symbol, AST_NODE *valu
 
 
     symbNode->ident = symbol;
+    symbNode->type = type;
 
     if(value->type == NUM_NODE_TYPE )
     {
@@ -422,6 +432,66 @@ SYMBOL_TABLE_NODE *createSymbolTable(char* typeNum, char *symbol, AST_NODE *valu
 
 }
 
+ARG_TABLE_NODE *createSymbArgList(char *symbol, ARG_TABLE_NODE *oldHead, SYMBOL_TYPE type)
+{
+    SYMBOL_TABLE_NODE *symbNode;
+    size_t nodeSize;
+
+    nodeSize = sizeof(AST_NODE);
+    if ((symbNode = calloc(nodeSize, 1)) == NULL)
+    {
+        yyerror("Memory allocation failed!");
+    }
+
+
+    symbNode->ident = symbol;
+    symbNode->type = type;
+    symbNode->next = oldHead;
+    symbNode->val = NULL;
+
+    return symbNode;
+}
+
+SYMBOL_TABLE_NODE *createSymbLambda(char *typeNum, char *symbol, ARG_TABLE_NODE *argList, AST_NODE *sExpr, SYMBOL_TYPE type)
+{
+    SYMBOL_TABLE_NODE *symbNode;
+    size_t nodeSize;
+
+    nodeSize = sizeof(AST_NODE);
+    if ((symbNode = calloc(nodeSize, 1)) == NULL)
+    {
+        yyerror("Memory allocation failed!");
+    }
+
+    symbNode->type = type;
+    symbNode->ident = symbol;
+    symbNode->val = sExpr;
+    sExpr->args = argList;
+
+
+    if(typeNum != NULL)
+    {
+        if(strcmp(typeNum, "int") == 0)
+        {
+            symbNode->val_type = INT_TYPE;
+        }
+        else if (strcmp(typeNum, "double") == 0)
+        {
+            symbNode->val_type = DOUBLE_TYPE;
+        }
+        else
+        {
+            symbNode->val_type = NO_TYPE;
+        }
+    }
+
+
+
+    return symbNode;
+
+
+}
+
 SYMBOL_TABLE_NODE *linkSymbolTables(SYMBOL_TABLE_NODE *list, SYMBOL_TABLE_NODE *elem)
 {
 
@@ -466,34 +536,68 @@ AST_NODE *createSymbAstNode(char *symbol)
 }
 
 RET_VAL findSymbolValue(AST_NODE *node, char *symbol) {
-    if (node->symbolTable != NULL) {
-        SYMBOL_TABLE_NODE *symbNode = node->symbolTable;
+   if(node->data.function.oper != CUSTOM_OPER)
+   {
+       if (node->symbolTable != NULL) {
+           SYMBOL_TABLE_NODE *symbNode = node->symbolTable;
 
-        while (symbNode != NULL) {
-            if (strcmp(symbol, symbNode->ident) == 0) {
-                RET_VAL result = symbNode->val->data.number;
+           while (symbNode != NULL) {
+               if (strcmp(symbol, symbNode->ident) == 0) {
+                   RET_VAL result = symbNode->val->data.number;
 
-                if (symbNode->val->data.number.type == INT_TYPE) {
-                    result.type = INT_TYPE;
-                    result.value.ival = symbNode->val->data.number.value.ival;
-                } else {
-                    result.type = DOUBLE_TYPE;
-                    result.value.dval = symbNode->val->data.number.value.dval;
-                }
-                return result;
-            }
-            symbNode = symbNode->next;
-        }
-    }
-    if (node->parent != NULL)
-    {
-        return findSymbolValue(node->parent, symbol);
-    }
-    else
-    {
-        printf("ERROR, Value for %s not found!", symbol);
-        exit(0);
-    }
+                   if (symbNode->val->data.number.type == INT_TYPE) {
+                       result.type = INT_TYPE;
+                       result.value.ival = symbNode->val->data.number.value.ival;
+                   } else {
+                       result.type = DOUBLE_TYPE;
+                       result.value.dval = symbNode->val->data.number.value.dval;
+                   }
+                   return result;
+               }
+               symbNode = symbNode->next;
+           }
+       }
+       if (node->parent != NULL)
+       {
+           return findSymbolValue(node->parent, symbol);
+       }
+       else
+       {
+           printf("ERROR, Value for %s not found!", symbol);
+           exit(0);
+       }
+   }
+   else
+   {
+       if (node->args != NULL) {
+           ARG_TABLE_NODE *argNode = node->args;
+
+           while (argNode != NULL) {
+               if (strcmp(symbol, argNode->ident) == 0) {
+                   RET_VAL result = argNode->val->data.number;
+
+                   if (argNode->val->data.number.type == INT_TYPE) {
+                       result.type = INT_TYPE;
+                       result.value.ival = argNode->val->data.number.value.ival;
+                   } else {
+                       result.type = DOUBLE_TYPE;
+                       result.value.dval = argNode->val->data.number.value.dval;
+                   }
+                   return result;
+               }
+               argNode = argNode->next;
+           }
+       }
+       if (node->parent != NULL)
+       {
+           return findSymbolValue(node->parent, symbol);
+       }
+       else
+       {
+           printf("ERROR, Value for %s not found!", symbol);
+           exit(0);
+       }
+   }
 }
 
 
@@ -1036,6 +1140,50 @@ RET_VAL *evalNary(FUNC_AST_NODE *funcNode)
 
 
     return result;
+}
+RET_VAL evalCustomFunc(AST_NODE *node, char *lambda )
+{
+    if (node->symbolTable != NULL) {
+        SYMBOL_TABLE_NODE *symbNode = node->symbolTable;
+
+        while (symbNode != NULL) {
+            if (strcmp(lambda, symbNode->ident) == 0) {
+                RET_VAL result = symbNode->val->data.number;
+
+                fillArgs(node,symbNode->val->args);
+
+                return result;
+            }
+            symbNode = symbNode->next;
+        }
+    }
+    if (node->parent != NULL)
+    {
+        return evalCustomFunc(node->parent, lambda);
+    }
+    else
+    {
+        printf("ERROR, Value for %s not found!", lambda);
+        exit(0);
+    }
+}
+
+RET_VAL fillArgs(AST_NODE *values, ARG_TABLE_NODE *args)
+{
+    AST_NODE *nextAst = values;
+    ARG_TABLE_NODE *nextArg = args;
+
+    while( nextArg != NULL && nextAst != NULL)
+    {
+        nextArg->val = nextAst;
+        nextAst = nextAst->next;
+        nextArg = nextArg->next;
+    }
+
+//    if(nextArg != nextAst)
+//    {
+//
+//    }
 }
 
 AST_NODE *createCondAst(AST_NODE *condition, AST_NODE *ifTrue, AST_NODE *ifFalse)
