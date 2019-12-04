@@ -64,6 +64,12 @@ typedef enum {
     NO_TYPE
 } NUM_TYPE;
 
+typedef enum {
+    VARIABLE_TYPE,
+    LAMBDA_TYPE,
+    ARG_TYPE
+}SYMBOL_TYPE;
+
 // Node to store a number.
 typedef struct {
     NUM_TYPE type;
@@ -93,10 +99,17 @@ typedef struct symbol_ast_node {
     char *ident;
 }SYMBOL_AST_NODE;
 
+typedef struct stack_node {
+    struct ast_node *val;
+    struct stack_node *next;
+}STACK_NODE;
+
 typedef struct symbol_table_node {
+    SYMBOL_TYPE type;
     NUM_TYPE val_type;
     char *ident;
     struct ast_node *val;
+    STACK_NODE *stack;
     struct symbol_table_node *next;
 }SYMBOL_TABLE_NODE;
 
@@ -119,6 +132,8 @@ typedef struct ast_node {
     } data;
     struct ast_node *next;
 } AST_NODE;
+
+
 
 
 

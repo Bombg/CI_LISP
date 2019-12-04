@@ -120,6 +120,10 @@ let_elem:
      | LPAREN TYPE SYMBOL s_expr RPAREN {
      	fprintf(stderr, "yacc: let_elem ::= LPAREN SYMBOL s_expr RPAREN\n");
         $$ = createSymbolTable($2, $3, $4);
+     };
+
+arg_list: SYMBOL arg_list {
+
      }
 
 %%
