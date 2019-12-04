@@ -91,13 +91,17 @@ s_expr_list:
      | s_expr {
      	fprintf(stderr, "yacc: s_expr_list ::= s_expr\n");
 	$$ = $1;
-     };
+     }
+     | /* empty */
+     ;
 
 let_section:
-    LPAREN let_list RPAREN {
+	LPAREN let_list RPAREN {
     	fprintf(stderr, "yacc: let_section ::= LPAREN let_list RPAREN\n");
 	$$ = $2;
-    };
+    }
+    |
+    ; /* empty */
 
 let_list:
      LET let_elem {

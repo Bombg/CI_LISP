@@ -84,7 +84,7 @@ AST_NODE *createNumberNode(char *typeNum, double value, NUM_TYPE type)
     else if(strcmp("int",typeNum) == 0)
     {
         node->data.number.type = INT_TYPE;
-        printf("\"WARNING: precision loss in the typecasting of a number from double to int\"");
+        printf("\"WARNING: precision loss in the typecasting of a number from double to int\"\n");
 
         if(fmod(value,1) >= 0.5)
         {
@@ -134,18 +134,24 @@ AST_NODE *createFunctionNode(char *funcName, AST_NODE *opList)
 
 
 
-    node->type = FUNC_NODE_TYPE;
-    node->data.function.opList = opList;
-    AST_NODE *nextNode = opList;
-    AST_NODE *previous = node;
 
-    while(nextNode != NULL)
-    {
-        nextNode->parent = previous;
-        node->data.function.numOps++;
-        previous = nextNode;
-        nextNode = nextNode->next;
-    }
+    node->type = FUNC_NODE_TYPE;
+   if(strcmp(funcName,"read") != 0 && strcmp(funcName,"rand") != 0)
+   {
+       node->data.function.opList = opList;
+       AST_NODE *nextNode;
+       AST_NODE *previous;
+       nextNode = opList;
+       previous = node;
+
+       while(nextNode != NULL)
+       {
+           nextNode->parent = previous;
+           node->data.function.numOps++;
+           previous = nextNode;
+           nextNode = nextNode->next;
+       }
+   }
     node->data.function.oper = resolveFunc(funcName);
 
     free(funcName);
@@ -618,22 +624,33 @@ RET_VAL *evalUnary(FUNC_AST_NODE *funcNode)
                 result->value.dval = ((double)rand() / (double)RAND_MAX);
                 break;
             case READ_OPER:
-                printf("\nread := ");
+                printf("read := ");
                 scanf("%s",tempScan);
                 bool isdouble = false;
                 int ASCIIZERO = 48;
                 int ASCIININE = 57;
+                bool isNeg = false;
+                bool isSign = false;
+                int startInd = 0;
 
                 for(int i = 0 ; i < 65 && tempScan[i] != '\0'; i++)
                 {
                     if(tempScan[i] == '.')
                     {
-                        if(isdouble)
+                        if(isdouble || i == 0)
                         {
                             printf("Bad input for number\n");
                             exit(0);
                         }
                         isdouble = true;
+                    }
+                    if((tempScan[i] == '-' || tempScan[i] == '+') && i == 0)
+                    {
+                        startInd = 1;
+                        if(tempScan[i] == '-')
+                        {
+                            isNeg =  true;
+                        }
                     }
                     else if((tempScan[i] < ASCIIZERO || tempScan[i] > ASCIININE) && tempScan[i] != '.' )
                     {
@@ -643,13 +660,15 @@ RET_VAL *evalUnary(FUNC_AST_NODE *funcNode)
                 }
 
 
+
                 if(isdouble)
                 {
                     result->type = DOUBLE_TYPE;
                     bool pointFound;
                     double decPlace = 10;
-                    result->value.dval = (tempScan[0] - ASCIIZERO);
-                    for(int i = 1; i < 65 && tempScan[i] != '\0'; i++)
+
+                    result->value.dval = (tempScan[startInd] - ASCIIZERO);
+                    for(int i = startInd + 1; i < 65 && tempScan[i] != '\0'; i++)
                     {
                         if(tempScan[i] == '.')
                         {
@@ -671,15 +690,23 @@ RET_VAL *evalUnary(FUNC_AST_NODE *funcNode)
 
 
                     }
+                    if(isNeg)
+                    {
+                        result->value.dval *= -1;
+                    }
                 }
                 else
                 {
                     result->type = INT_TYPE;
-                    result->value.ival  = (tempScan[0] - ASCIIZERO);
-                    for(int i = 1; i < 65 && tempScan[i] != '\0'; i++)
+                    result->value.ival  = (tempScan[startInd] - ASCIIZERO);
+                    for(int i = startInd + 1; i < 65 && tempScan[i] != '\0'; i++)
                     {
                         result->value.ival *= 10;
                         result->value.ival += (tempScan[i] - ASCIIZERO);
+                    }
+                    if(isNeg)
+                    {
+                        result->value.ival *= -1;
                     }
                 }
 
@@ -1022,8 +1049,11 @@ AST_NODE *createCondAst(AST_NODE *condition, AST_NODE *ifTrue, AST_NODE *ifFalse
 
     node->type = COND_NODE_TYPE;
     node->data.condition.cond = condition;
+    node->data.condition.cond->parent = node;
     node->data.condition.ifTrue = ifTrue;
+    node->data.condition.ifTrue->parent = node;
     node->data.condition.ifFalse = ifFalse;
+    node->data.condition.ifFalse->parent = node;
 
     return node;
 
