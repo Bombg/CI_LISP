@@ -120,17 +120,16 @@ typedef struct {
 
 }COND_AST_NODE;
 
-typedef struct arg_table_node {
-    char *ident;
-    NUM_TYPE type;
-    struct ast_node *val;
-    struct arg_table_node *next;
-}ARG_TABLE_NODE;
+//typedef struct arg_table_node {
+//    char *ident;
+//    NUM_TYPE type;
+//    struct ast_node *val;
+//    struct arg_table_node *next;
+//}ARG_TABLE_NODE;
 
 typedef struct ast_node {
     AST_NODE_TYPE type;
     SYMBOL_TABLE_NODE *symbolTable;
-    ARG_TABLE_NODE *args;
     struct ast_node *parent;
     union {
         NUM_AST_NODE number;
@@ -154,8 +153,8 @@ RET_VAL evalNumNode(NUM_AST_NODE *numNode);
 RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode);
 NUM_TYPE binaryOpHelper(RET_VAL *op1, RET_VAL *op2);
 SYMBOL_TABLE_NODE *createSymbolTable(char *typeNum, char *symbol, AST_NODE *value, SYMBOL_TYPE type);
-ARG_TABLE_NODE *createSymbArgList(char *symbol, ARG_TABLE_NODE *oldHead, SYMBOL_TYPE type);
-SYMBOL_TABLE_NODE *createSymbLambda(char *typeNum, char *symbol, ARG_TABLE_NODE *argList, AST_NODE *sExpr, SYMBOL_TYPE type);
+SYMBOL_TABLE_NODE *createSymbArgList(char *symbol, SYMBOL_TABLE_NODE *oldHead, SYMBOL_TYPE type);
+SYMBOL_TABLE_NODE *createSymbLambda(char *typeNum, char *symbol, SYMBOL_TABLE_NODE *argList, AST_NODE *sExpr, SYMBOL_TYPE type);
 SYMBOL_TABLE_NODE *linkSymbolTables(SYMBOL_TABLE_NODE *list, SYMBOL_TABLE_NODE *elem);
 AST_NODE *linkAstSymbTable(SYMBOL_TABLE_NODE *tableHead, AST_NODE *funcNode);
 AST_NODE *createSymbAstNode(char *symbol);
@@ -166,8 +165,8 @@ RET_VAL *evalBinary(FUNC_AST_NODE *funcNode);
 RET_VAL *evalNary(FUNC_AST_NODE *funcNode);
 AST_NODE *createCondAst(AST_NODE *condition, AST_NODE *ifTrue, AST_NODE *ifFalse);
 RET_VAL evalCondNode(COND_AST_NODE *node);
-RET_VAL evalCustomFunc(AST_NODE *funcNode, char *lambda );
-RET_VAL fillArgs(AST_NODE *values, ARG_TABLE_NODE *args);
+RET_VAL *evalCustomFunc(AST_NODE *opNodes, AST_NODE *funcNode, char *lambda );
+void fillArgs(AST_NODE *values, SYMBOL_TABLE_NODE *args);
 
 
 void printRetVal(RET_VAL val);

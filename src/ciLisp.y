@@ -127,16 +127,18 @@ let_elem:
         $$ = createSymbolTable($2, $3, $4,VARIABLE_TYPE);
      }
      | LPAREN SYMBOL LAMBDA LPAREN arg_list RPAREN s_expr RPAREN {
+     	fprintf(stderr, "yacc: let_elem ::= LPAREN SYMBOL LAMBDA LPAREN arg_list RPAREN s_expr RPAREN\n");
 	$$ = createSymbLambda(NULL, $2, $5, $7,LAMBDA_TYPE);
      }
      | LPAREN TYPE SYMBOL LAMBDA LPAREN arg_list RPAREN s_expr RPAREN {
+    	 fprintf(stderr, "yacc: let_elem ::= LPAREN TYPE SYMBOL LAMBDA LPAREN arg_list RPAREN s_expr RPAREN\n");
 	$$ = createSymbLambda($2, $3, $6, $8,LAMBDA_TYPE);
      };
 
 arg_list:
      SYMBOL arg_list {
 	fprintf(stderr, "yacc: arg_list ::= SYMBOL arg_list\n");
-	$$ = createSymbArgList($1, $2, ARG_TYPE)
+	$$ = createSymbArgList($1, $2, ARG_TYPE);
 
      }
      | SYMBOL{
