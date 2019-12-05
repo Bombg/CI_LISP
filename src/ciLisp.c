@@ -181,13 +181,56 @@ void freeNode(AST_NODE *node)
     {
         // Recursive calls to free child nodes
 
-        freeNode(node->data.function.opList->next);
+        freeNode(node->data.function.opList);
 
         // Free up identifier string if necessary
         if (node->data.function.oper == CUSTOM_OPER)
         {
             free(node->data.function.ident);
         }
+
+    }
+    if(node->symbolTable != NULL)
+    {
+        SYMBOL_TABLE_NODE *nextNode = node->symbolTable->next;
+        SYMBOL_TABLE_NODE *curNode = node->symbolTable;
+
+        if(curNode->val)
+        {
+            freeNode(curNode->val);
+        }
+
+        while(curNode)
+        {
+            free(curNode);
+
+            if(nextNode)
+            {
+                curNode = nextNode;
+                nextNode = nextNode->next;
+            }
+            else
+            {
+                curNode = NULL;
+            }
+
+        }
+    }
+    if(node->type == COND_NODE_TYPE)
+    {
+        freeNode(node->data.condition.cond);
+        freeNode(node->data.condition.ifFalse);
+        freeNode(node->data.condition.ifTrue);
+
+    }
+    if(node->type == SYMBOL_NODE_TYPE)
+    {
+        free(node->data.symbol.ident);
+        //free(&node->data.symbol);
+    }
+    if(node->next)
+    {
+        freeNode(node->next);
     }
 
     free(node);
