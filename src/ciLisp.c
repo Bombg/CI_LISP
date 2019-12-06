@@ -177,44 +177,27 @@ void freeNode(AST_NODE *node)
     if (!node)
         return;
 
-    if (node->type == FUNC_NODE_TYPE)
+    if(node->next)
+    {
+        freeNode(node->next);
+    }
+
+    if (node->type == FUNC_NODE_TYPE && node->data.function.opList)
     {
         // Recursive calls to free child nodes
-
         freeNode(node->data.function.opList);
 
+
         // Free up identifier string if necessary
-        if (node->data.function.oper == CUSTOM_OPER)
+        if (node->data.function.oper == CUSTOM_OPER && node->data.function.ident)
         {
             free(node->data.function.ident);
         }
 
     }
-    if(node->symbolTable != NULL)
+    if(node->symbolTable)
     {
-        SYMBOL_TABLE_NODE *nextNode = node->symbolTable->next;
-        SYMBOL_TABLE_NODE *curNode = node->symbolTable;
-
-        if(curNode->val)
-        {
-            freeNode(curNode->val);
-        }
-
-        while(curNode)
-        {
-            free(curNode);
-
-            if(nextNode)
-            {
-                curNode = nextNode;
-                nextNode = nextNode->next;
-            }
-            else
-            {
-                curNode = NULL;
-            }
-
-        }
+        freeSymbolTable(node->symbolTable);
     }
     if(node->type == COND_NODE_TYPE)
     {
@@ -223,17 +206,52 @@ void freeNode(AST_NODE *node)
         freeNode(node->data.condition.ifTrue);
 
     }
-    if(node->type == SYMBOL_NODE_TYPE)
-    {
-        free(node->data.symbol.ident);
-        //free(&node->data.symbol);
-    }
+//    if(node->type == SYMBOL_NODE_TYPE && node->data.symbol.ident) // causes seg fault for unknown reason
+//    {
+//        free(node->data.symbol.ident);
+//
+//    }
+
+
+    free(node);
+}
+
+void freeSymbolTable(SYMBOL_TABLE_NODE *node)
+{
+    if (!node)
+        return;
     if(node->next)
     {
-        freeNode(node->next);
+        freeSymbolTable(node->next);
+    }
+    if(node->stack)
+    {
+        freeStack(node->stack);
+    }
+
+    if(node->val)
+    {
+        freeNode(node->val);
     }
 
     free(node);
+}
+
+void freeStack(STACK_NODE *node)
+{
+    if (!node)
+        return;
+    if(node->val)
+    {
+        freeNode(node->val);
+    }
+    if(node->next)
+    {
+        freeStack(node->next);
+    }
+
+    free(node);
+
 }
 
 // Evaluates an AST_NODE.
@@ -341,7 +359,10 @@ RET_VAL evalFuncNode(FUNC_AST_NODE *funcNode)
             result = evalCustomFunc(funcNode->opList,funcNode->opList, funcNode->ident);
 
     }
-    return (*result);
+
+    RET_VAL retByVal = (*result);
+    free(result);
+    return (retByVal);
 }
 
 NUM_TYPE binaryOpHelper(RET_VAL *op1, RET_VAL *op2)
@@ -392,7 +413,6 @@ void printRetVal(RET_VAL val){
     }
 
 }
-
 SYMBOL_TABLE_NODE *createSymbolTable(char* typeNum, char *symbol, AST_NODE *value, SYMBOL_TYPE type)
 {
     SYMBOL_TABLE_NODE *symbNode;
@@ -465,7 +485,6 @@ SYMBOL_TABLE_NODE *createSymbolTable(char* typeNum, char *symbol, AST_NODE *valu
 
 
 }
-
 SYMBOL_TABLE_NODE *createSymbArgList(char *symbol, SYMBOL_TABLE_NODE *oldHead, SYMBOL_TYPE type)
 {
     SYMBOL_TABLE_NODE *argNode;
@@ -485,7 +504,6 @@ SYMBOL_TABLE_NODE *createSymbArgList(char *symbol, SYMBOL_TABLE_NODE *oldHead, S
 
     return argNode;
 }
-
 SYMBOL_TABLE_NODE *createSymbLambda(char *typeNum, char *symbol, SYMBOL_TABLE_NODE *argList, AST_NODE *sExpr, SYMBOL_TYPE type)
 {
     SYMBOL_TABLE_NODE *symbNode;
@@ -525,7 +543,6 @@ SYMBOL_TABLE_NODE *createSymbLambda(char *typeNum, char *symbol, SYMBOL_TABLE_NO
 
 
 }
-
 SYMBOL_TABLE_NODE *linkSymbolTables(SYMBOL_TABLE_NODE *list, SYMBOL_TABLE_NODE *elem)
 {
 
@@ -533,42 +550,37 @@ SYMBOL_TABLE_NODE *linkSymbolTables(SYMBOL_TABLE_NODE *list, SYMBOL_TABLE_NODE *
 
     return elem;
 }
-
-
-
 AST_NODE *linkAstSymbTable(SYMBOL_TABLE_NODE *tableHead, AST_NODE *funcNode)
 {
     funcNode->symbolTable = tableHead;
 
     return funcNode;
 }
-
 AST_NODE *createSymbAstNode(char *symbol)
 {
     AST_NODE *node;
     size_t nodeSize;
-    SYMBOL_AST_NODE *symbNode;
+    SYMBOL_AST_NODE symbNode;
 
     // allocate space (or error)
     nodeSize = sizeof(AST_NODE);
     if ((node = calloc(nodeSize, 1)) == NULL)
         yyerror("Memory allocation failed!");
 
-    nodeSize = sizeof(SYMBOL_AST_NODE);
-    if ((symbNode = calloc(nodeSize, 1)) == NULL)
-        yyerror("Memory allocation failed!");
+//    nodeSize = sizeof(SYMBOL_AST_NODE);
+//    if ((symbNode = calloc(nodeSize, 1)) == NULL)
+//        yyerror("Memory allocation failed!");
 
     node->type = SYMBOL_NODE_TYPE;
-    symbNode->ident = symbol;
+    symbNode.ident = symbol;
 
 
-    node->data.symbol = *symbNode;
+    node->data.symbol = symbNode;
 
     return node;
 
 
 }
-
 RET_VAL findSymbolValue(AST_NODE *node, char *symbol) {
 
     if (node->symbolTable != NULL) {
@@ -621,8 +633,6 @@ RET_VAL findSymbolValue(AST_NODE *node, char *symbol) {
 
 
 }
-
-
 AST_NODE *linkOpNodes(AST_NODE *newHead, AST_NODE *oldHead )
 {
     newHead->next = oldHead;
@@ -630,7 +640,6 @@ AST_NODE *linkOpNodes(AST_NODE *newHead, AST_NODE *oldHead )
 
     return newHead;
 }
-
 RET_VAL *evalUnary(FUNC_AST_NODE *funcNode)
 {
     size_t  retvalSize;
@@ -1178,7 +1187,7 @@ RET_VAL *evalCustomFunc(AST_NODE *opNodes, AST_NODE *node, char *lambda)
             if (strcmp(lambda, symbNode->ident) == 0) {
 
 
-                fillArgs(opNodes,symbNode->val->symbolTable);
+                fillArgs(opNodes,symbNode->val->symbolTable,symbNode->val_type);
                 (*result) = eval(symbNode->val);
 
                 symbNode->val->symbolTable->stack = symbNode->val->symbolTable->stack->next;
@@ -1199,8 +1208,7 @@ RET_VAL *evalCustomFunc(AST_NODE *opNodes, AST_NODE *node, char *lambda)
         exit(0);
     }
 }
-
-void fillArgs(AST_NODE *values, SYMBOL_TABLE_NODE *args)
+void fillArgs(AST_NODE *values, SYMBOL_TABLE_NODE *args, NUM_TYPE type)
 {
 
    STACK_NODE *xStackNode;
@@ -1215,6 +1223,38 @@ void fillArgs(AST_NODE *values, SYMBOL_TABLE_NODE *args)
     values->data.number = eval(values);
     values->next->data.number = eval(values->next);
 
+
+    if(values->data.number.type != type)
+    {
+        if(values->data.number.type == INT_TYPE)
+        {
+            values->data.number.value.dval = values->data.number.value.ival;
+            values->data.number.type = DOUBLE_TYPE;
+        }
+        else
+        {
+            values->data.number.value.ival = values->data.number.value.dval;
+            values->data.number.type = INT_TYPE;
+        }
+    }
+
+    if(values->next->data.number.type != type)
+    {
+
+        if(values->next->data.number.type == INT_TYPE)
+        {
+            values->next->data.number.value.dval = values->next->data.number.value.ival;
+            values->next->data.number.type = DOUBLE_TYPE;
+        }
+        else
+        {
+            values->next->data.number.value.ival = values->next->data.number.value.dval;
+            values->next->data.number.type = INT_TYPE;
+        }
+    }
+
+
+
     args->stack = xStackNode;
     args->next->stack = yStackNode;
 
@@ -1223,7 +1263,6 @@ void fillArgs(AST_NODE *values, SYMBOL_TABLE_NODE *args)
 
 
 }
-
 AST_NODE *createCondAst(AST_NODE *condition, AST_NODE *ifTrue, AST_NODE *ifFalse)
 {
     size_t  condSize;
@@ -1244,7 +1283,6 @@ AST_NODE *createCondAst(AST_NODE *condition, AST_NODE *ifTrue, AST_NODE *ifFalse
     return node;
 
 }
-
 RET_VAL evalCondNode(COND_AST_NODE *node)
 {
     RET_VAL result;

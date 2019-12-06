@@ -120,12 +120,6 @@ typedef struct {
 
 }COND_AST_NODE;
 
-//typedef struct arg_table_node {
-//    char *ident;
-//    NUM_TYPE type;
-//    struct ast_node *val;
-//    struct arg_table_node *next;
-//}ARG_TABLE_NODE;
 
 typedef struct ast_node {
     AST_NODE_TYPE type;
@@ -166,7 +160,9 @@ RET_VAL *evalNary(FUNC_AST_NODE *funcNode);
 AST_NODE *createCondAst(AST_NODE *condition, AST_NODE *ifTrue, AST_NODE *ifFalse);
 RET_VAL evalCondNode(COND_AST_NODE *node);
 RET_VAL *evalCustomFunc(AST_NODE *opNodes, AST_NODE *funcNode, char *lambda );
-void fillArgs(AST_NODE *values, SYMBOL_TABLE_NODE *args);
+void fillArgs(AST_NODE *values, SYMBOL_TABLE_NODE *args,NUM_TYPE type);
+void freeSymbolTable(SYMBOL_TABLE_NODE *node);
+void freeStack(STACK_NODE *node);
 
 
 void printRetVal(RET_VAL val);
